@@ -49,7 +49,7 @@ class FuzzyStringEqualsFilterTest {
   }
 
   @Test
-  void shouldCreateFilterWithValidFuzzyStringValue() {
+  void givenValidFuzzyStringValue_whenMake_thenFilterCreated() {
     Criteria criteria = factory.make(
         Optional.of("description:FZ:laptop gamer"),
         Optional.empty(),
@@ -64,7 +64,7 @@ class FuzzyStringEqualsFilterTest {
   }
 
   @Test
-  void shouldThrowExceptionWhenFormatHasTooFewSegments() {
+  void givenFormatWithTooFewSegments_whenMake_thenBadRequestException() {
     assertThatThrownBy(() -> factory.make(
         Optional.of("description:FZ"),
         Optional.empty(),
@@ -74,7 +74,7 @@ class FuzzyStringEqualsFilterTest {
   }
 
   @Test
-  void shouldThrowExceptionWhenValueIsEmpty() {
+  void givenEmptyValue_whenMake_thenBadRequestException() {
     assertThatThrownBy(() -> factory.make(
         Optional.of("description:FZ:"),
         Optional.empty(),
@@ -84,7 +84,7 @@ class FuzzyStringEqualsFilterTest {
   }
 
   @Test
-  void shouldThrowExceptionWhenFieldNotInWhitelist() {
+  void givenFieldNotInWhitelist_whenMake_thenBadRequestException() {
     assertThatThrownBy(() -> factory.make(
         Optional.of("unknown:FZ:laptop"),
         Optional.empty(),
@@ -94,7 +94,7 @@ class FuzzyStringEqualsFilterTest {
   }
 
   @Test
-  void shouldThrowExceptionWhenOperatorIsNotAllowedForSchema() {
+  void givenOperatorNotAllowedForSchema_whenMake_thenBadRequestException() {
     assertThatThrownBy(() -> factory.make(
         Optional.of("description:EQ:laptop"),
         Optional.empty(),
@@ -104,7 +104,7 @@ class FuzzyStringEqualsFilterTest {
   }
 
   @Test
-  void shouldNotCreateFilterWhenFilterStringIsBlank() {
+  void givenBlankFilterString_whenMake_thenNoFilterCreated() {
     Criteria criteria = factory.make(
         Optional.of("  "),
         Optional.empty(),

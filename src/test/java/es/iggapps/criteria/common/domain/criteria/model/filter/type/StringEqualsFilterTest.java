@@ -49,7 +49,7 @@ class StringEqualsFilterTest {
   }
 
   @Test
-  void shouldCreateFilterWithValidStringValue() {
+  void givenValidStringValue_whenMake_thenFilterCreated() {
     Criteria criteria = factory.make(
         Optional.of("name:EQ:John"),
         Optional.empty(),
@@ -64,7 +64,7 @@ class StringEqualsFilterTest {
   }
 
   @Test
-  void shouldThrowExceptionWhenFormatHasTooFewSegments() {
+  void givenFormatWithTooFewSegments_whenMake_thenBadRequestException() {
     assertThatThrownBy(() -> factory.make(
         Optional.of("name:EQ"),
         Optional.empty(),
@@ -74,17 +74,21 @@ class StringEqualsFilterTest {
   }
 
   @Test
-  void shouldThrowExceptionWhenFormatHasTooManySegments() {
-    assertThatThrownBy(() -> factory.make(
+  void givenExtraSegmentsInValue_whenMake_thenValueContainsColons() {
+    Criteria criteria = factory.make(
         Optional.of("name:EQ:John:extra"),
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
-    )).isInstanceOf(BadRequestException.class);
+    );
+
+    assertThat(criteria.findFilterBy(FIELD)).isPresent();
+    Filter<String> filter = criteria.getFilterOrElseThrow(FIELD);
+    assertThat(filter.withOperator(Operator.EQ).get()).isEqualTo("John:extra");
   }
 
   @Test
-  void shouldThrowExceptionWhenFieldIsEmpty() {
+  void givenEmptyField_whenMake_thenBadRequestException() {
     assertThatThrownBy(() -> factory.make(
         Optional.of(":EQ:John"),
         Optional.empty(),
@@ -94,7 +98,7 @@ class StringEqualsFilterTest {
   }
 
   @Test
-  void shouldThrowExceptionWhenOperatorIsEmpty() {
+  void givenEmptyOperator_whenMake_thenBadRequestException() {
     assertThatThrownBy(() -> factory.make(
         Optional.of("name::John"),
         Optional.empty(),
@@ -104,7 +108,7 @@ class StringEqualsFilterTest {
   }
 
   @Test
-  void shouldThrowExceptionWhenValueIsEmpty() {
+  void givenEmptyValue_whenMake_thenBadRequestException() {
     assertThatThrownBy(() -> factory.make(
         Optional.of("name:EQ:"),
         Optional.empty(),
@@ -114,7 +118,7 @@ class StringEqualsFilterTest {
   }
 
   @Test
-  void shouldThrowExceptionWhenFieldNotInWhitelist() {
+  void givenFieldNotInWhitelist_whenMake_thenBadRequestException() {
     assertThatThrownBy(() -> factory.make(
         Optional.of("unknown:EQ:John"),
         Optional.empty(),
@@ -124,7 +128,7 @@ class StringEqualsFilterTest {
   }
 
   @Test
-  void shouldThrowExceptionWhenOperatorIsNotAllowedForSchema() {
+  void givenOperatorNotAllowedForSchema_whenMake_thenBadRequestException() {
     assertThatThrownBy(() -> factory.make(
         Optional.of("name:FZ:John"),
         Optional.empty(),
@@ -134,7 +138,7 @@ class StringEqualsFilterTest {
   }
 
   @Test
-  void shouldNotCreateFilterWhenFilterStringIsBlank() {
+  void givenBlankFilterString_whenMake_thenNoFilterCreated() {
     Criteria criteria = factory.make(
         Optional.of(""),
         Optional.empty(),

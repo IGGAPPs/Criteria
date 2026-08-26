@@ -49,7 +49,7 @@ class NaturalNumberEqualsFilterTest {
   }
 
   @Test
-  void shouldCreateFilterWithValidNaturalNumber() {
+  void givenValidNaturalNumber_whenMake_thenFilterCreated() {
     Criteria criteria = factory.make(
         Optional.of("quantity:EQ:42"),
         Optional.empty(),
@@ -64,7 +64,7 @@ class NaturalNumberEqualsFilterTest {
   }
 
   @Test
-  void shouldCreateFilterWithOne() {
+  void givenValueOne_whenMake_thenFilterCreated() {
     Criteria criteria = factory.make(
         Optional.of("quantity:EQ:1"),
         Optional.empty(),
@@ -77,7 +77,7 @@ class NaturalNumberEqualsFilterTest {
   }
 
   @Test
-  void shouldThrowExceptionWhenValueIsNotANumber() {
+  void givenNonNumericValue_whenMake_thenBadRequestException() {
     assertThatThrownBy(() -> factory.make(
         Optional.of("quantity:EQ:notanumber"),
         Optional.empty(),
@@ -87,7 +87,7 @@ class NaturalNumberEqualsFilterTest {
   }
 
   @Test
-  void shouldThrowExceptionWhenValueIsZero() {
+  void givenZeroValue_whenMake_thenBadRequestException() {
     assertThatThrownBy(() -> factory.make(
         Optional.of("quantity:EQ:0"),
         Optional.empty(),
@@ -97,7 +97,7 @@ class NaturalNumberEqualsFilterTest {
   }
 
   @Test
-  void shouldThrowExceptionWhenValueIsNegative() {
+  void givenNegativeValue_whenMake_thenBadRequestException() {
     assertThatThrownBy(() -> factory.make(
         Optional.of("quantity:EQ:-5"),
         Optional.empty(),
@@ -107,7 +107,7 @@ class NaturalNumberEqualsFilterTest {
   }
 
   @Test
-  void shouldThrowExceptionWhenValueIsEmpty() {
+  void givenEmptyValue_whenMake_thenBadRequestException() {
     assertThatThrownBy(() -> factory.make(
         Optional.of("quantity:EQ:"),
         Optional.empty(),
@@ -117,7 +117,7 @@ class NaturalNumberEqualsFilterTest {
   }
 
   @Test
-  void shouldThrowExceptionWhenOperatorIsNotAllowedForSchema() {
+  void givenOperatorNotAllowedForSchema_whenMake_thenBadRequestException() {
     assertThatThrownBy(() -> factory.make(
         Optional.of("quantity:FZ:42"),
         Optional.empty(),
@@ -127,7 +127,7 @@ class NaturalNumberEqualsFilterTest {
   }
 
   @Test
-  void shouldThrowExceptionWhenFieldNotInWhitelist() {
+  void givenFieldNotInWhitelist_whenMake_thenBadRequestException() {
     assertThatThrownBy(() -> factory.make(
         Optional.of("unknown:EQ:42"),
         Optional.empty(),

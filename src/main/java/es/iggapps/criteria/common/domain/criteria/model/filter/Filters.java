@@ -1,6 +1,9 @@
 package es.iggapps.criteria.common.domain.criteria.model.filter;
 
 import es.iggapps.criteria.common.domain.criteria.model.Field;
+import es.iggapps.criteria.common.domain.criteria.model.filter.type.ContainsAllNumbersFilter;
+import es.iggapps.criteria.common.domain.criteria.model.filter.type.ContainsAllStringsFilter;
+import es.iggapps.criteria.common.domain.criteria.model.filter.type.ContainsAllUuidsFilter;
 import es.iggapps.criteria.common.domain.criteria.model.filter.type.FechaPeninsularGteFilter;
 import es.iggapps.criteria.common.domain.criteria.model.filter.type.FechaPeninsularLteFilter;
 import es.iggapps.criteria.common.domain.criteria.model.filter.type.FuzzyStringEqualsFilter;
@@ -58,6 +61,9 @@ public final class Filters {
       case Schema.FECHA_PENINSULAR_GTE -> FechaPeninsularGteFilter.of(field, plainFilterList);
       case Schema.FECHA_PENINSULAR_LTE -> FechaPeninsularLteFilter.of(field, plainFilterList);
       case Schema.FUZZY_STRING_EQUALS -> FuzzyStringEqualsFilter.of(field, plainFilterList);
+      case Schema.CONTAINS_ALL_STRINGS -> ContainsAllStringsFilter.of(field, plainFilterList);
+      case Schema.CONTAINS_ALL_NUMBERS -> ContainsAllNumbersFilter.of(field, plainFilterList);
+      case Schema.CONTAINS_ALL_UUIDS -> ContainsAllUuidsFilter.of(field, plainFilterList);
       default -> throw new DomainException(MESSAGE_FILTER_TYPE_UNKNOWN);
     };
   }

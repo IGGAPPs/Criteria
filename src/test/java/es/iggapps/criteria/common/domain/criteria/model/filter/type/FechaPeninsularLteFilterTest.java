@@ -50,7 +50,7 @@ class FechaPeninsularLteFilterTest {
   }
 
   @Test
-  void shouldCreateFilterWithValidDate() {
+  void givenValidDate_whenMake_thenFilterCreated() {
     Criteria criteria = factory.make(
         Optional.of("fecha:LTE:2024-12-31"),
         Optional.empty(),
@@ -66,7 +66,7 @@ class FechaPeninsularLteFilterTest {
   }
 
   @Test
-  void shouldThrowExceptionWhenDateFormatIsInvalid() {
+  void givenInvalidDateFormat_whenMake_thenBadRequestException() {
     assertThatThrownBy(() -> factory.make(
         Optional.of("fecha:LTE:31/12/2024"),
         Optional.empty(),
@@ -76,7 +76,7 @@ class FechaPeninsularLteFilterTest {
   }
 
   @Test
-  void shouldThrowExceptionWhenDateIsNotARealDate() {
+  void givenNonExistingDate_whenMake_thenBadRequestException() {
     assertThatThrownBy(() -> factory.make(
         Optional.of("fecha:LTE:2024-13-01"),
         Optional.empty(),
@@ -86,7 +86,7 @@ class FechaPeninsularLteFilterTest {
   }
 
   @Test
-  void shouldThrowExceptionWhenValueIsEmpty() {
+  void givenEmptyValue_whenMake_thenBadRequestException() {
     assertThatThrownBy(() -> factory.make(
         Optional.of("fecha:LTE:"),
         Optional.empty(),
@@ -96,7 +96,7 @@ class FechaPeninsularLteFilterTest {
   }
 
   @Test
-  void shouldThrowExceptionWhenOperatorIsNotAllowedForSchema() {
+  void givenOperatorNotAllowedForSchema_whenMake_thenBadRequestException() {
     assertThatThrownBy(() -> factory.make(
         Optional.of("fecha:GTE:2024-01-15"),
         Optional.empty(),
@@ -106,7 +106,7 @@ class FechaPeninsularLteFilterTest {
   }
 
   @Test
-  void shouldThrowExceptionWhenFieldNotInWhitelist() {
+  void givenFieldNotInWhitelist_whenMake_thenBadRequestException() {
     assertThatThrownBy(() -> factory.make(
         Optional.of("other:LTE:2024-01-15"),
         Optional.empty(),

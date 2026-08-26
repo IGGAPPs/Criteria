@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 
 
@@ -100,8 +101,9 @@ public abstract class CriteriaFactory {
   }
 
   private void validateFilterStringFormat(final String filters) {
-    Arrays.stream(filters.split(EXTERNAL_FILTER_AND_SORT_SEPARATOR, -1)).forEach(filter -> {
-      final String[] filterSegments = filter.split(INTERNAL_FILTER_AND_SORT_SEPARATOR, -1);
+    splitRespectingBrackets(filters).forEach(filter -> {
+      final String[] filterSegments = filter.split(INTERNAL_FILTER_AND_SORT_SEPARATOR,
+          MAX_NUMBER_OF_FILTER_SEGMENTS);
       final int numberOfInternalSegments = filterSegments.length;
       if (numberOfInternalSegments != MAX_NUMBER_OF_FILTER_SEGMENTS) {
         throw new BadRequestException(MESSAGE_FILTERS_FORMAT_INCORRECT);
@@ -119,7 +121,7 @@ public abstract class CriteriaFactory {
   }
 
   private void validateAllFiltersAreInWhiteList(final String filters) {
-    Arrays.stream(filters.split(EXTERNAL_FILTER_AND_SORT_SEPARATOR, -1)).forEach(filter -> {
+    splitRespectingBrackets(filters).forEach(filter -> {
       final String field = filter.split(INTERNAL_FILTER_AND_SORT_SEPARATOR, -1)[0];
       if (!filterWhiteList().contains(field)) {
         throw new BadRequestException(MESSAGE_FILTER_FIELD_NOT_ALLOWED
@@ -135,9 +137,11 @@ public abstract class CriteriaFactory {
   }
 
   private List<PlainFilter> makeFilterList(final String filters) {
-    return Arrays.stream(filters.split(EXTERNAL_FILTER_AND_SORT_SEPARATOR, -1))
+    return splitRespectingBrackets(filters)
+        .stream()
         .map(filter -> {
-          final String[] filterSegments = filter.split(INTERNAL_FILTER_AND_SORT_SEPARATOR, -1);
+          final String[] filterSegments = filter.split(INTERNAL_FILTER_AND_SORT_SEPARATOR,
+              MAX_NUMBER_OF_FILTER_SEGMENTS);
           return PlainFilter.of(
               filterSegments[0],
               filterSegments[1],
@@ -193,4 +197,27 @@ public abstract class CriteriaFactory {
   }
 
   protected abstract List<PlainSort> configDefaultSort();
+
+  private List<String> splitRespectingBrackets(final String value) {
+    final List<String> result = new ArrayList<>();
+    final StringBuilder current = new StringBuilder();
+    int bracketDepth = 0;
+    for (int i = 0; i < value.length(); i++) {
+      final char c = value.charAt(i);
+      if (c == '[') {
+        bracketDepth++;
+        current.append(c);
+      } else if (c == ']') {
+        bracketDepth--;
+        current.append(c);
+      } else if (c == ',' && bracketDepth == 0) {
+        result.add(current.toString());
+        current.setLength(0);
+      } else {
+        current.append(c);
+      }
+    }
+    result.add(current.toString());
+    return result;
+  }
 }

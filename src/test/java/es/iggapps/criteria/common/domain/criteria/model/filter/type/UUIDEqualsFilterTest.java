@@ -51,7 +51,7 @@ class UUIDEqualsFilterTest {
   }
 
   @Test
-  void shouldCreateFilterWithValidUUID() {
+  void givenValidUUID_whenMake_thenFilterCreated() {
     Criteria criteria = factory.make(
         Optional.of("id:EQ:" + VALID_UUID),
         Optional.empty(),
@@ -66,7 +66,7 @@ class UUIDEqualsFilterTest {
   }
 
   @Test
-  void shouldThrowExceptionWhenValueIsNotUUID() {
+  void givenNonUuidValue_whenMake_thenBadRequestException() {
     assertThatThrownBy(() -> factory.make(
         Optional.of("id:EQ:not-a-uuid"),
         Optional.empty(),
@@ -76,7 +76,7 @@ class UUIDEqualsFilterTest {
   }
 
   @Test
-  void shouldThrowExceptionWhenValueIsEmpty() {
+  void givenEmptyValue_whenMake_thenBadRequestException() {
     assertThatThrownBy(() -> factory.make(
         Optional.of("id:EQ:"),
         Optional.empty(),
@@ -86,7 +86,7 @@ class UUIDEqualsFilterTest {
   }
 
   @Test
-  void shouldThrowExceptionWhenOperatorIsNotAllowedForSchema() {
+  void givenOperatorNotAllowedForSchema_whenMake_thenBadRequestException() {
     assertThatThrownBy(() -> factory.make(
         Optional.of("id:FZ:" + VALID_UUID),
         Optional.empty(),
@@ -96,7 +96,7 @@ class UUIDEqualsFilterTest {
   }
 
   @Test
-  void shouldThrowExceptionWhenFieldNotInWhitelist() {
+  void givenFieldNotInWhitelist_whenMake_thenBadRequestException() {
     assertThatThrownBy(() -> factory.make(
         Optional.of("unknown:EQ:" + VALID_UUID),
         Optional.empty(),
