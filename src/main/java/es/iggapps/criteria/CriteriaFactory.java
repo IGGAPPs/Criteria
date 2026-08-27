@@ -3,8 +3,9 @@ package es.iggapps.criteria;
 import es.iggapps.criteria.common.BadRequestException;
 import es.iggapps.criteria.common.ExceptionMessageService;
 import es.iggapps.criteria.common.domain.criteria.Criteria;
+import es.iggapps.criteria.common.domain.criteria.model.filter.FilterConfig;
 import es.iggapps.criteria.common.domain.criteria.model.filter.Filters;
-import es.iggapps.criteria.common.domain.criteria.model.filter.Schema;
+import es.iggapps.criteria.common.domain.criteria.model.filter.Type;
 import es.iggapps.criteria.common.domain.criteria.model.page.PageNumber;
 import es.iggapps.criteria.common.domain.criteria.model.page.PageSize;
 import es.iggapps.criteria.common.domain.criteria.model.sort.Sorts;
@@ -17,7 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 
 
@@ -39,6 +39,8 @@ public abstract class CriteriaFactory {
   private static final String MESSAGE_FILTER_VALUE_CANNOT_BE_EMPTY =
       "El formato del parámetro 'filters' es incorrecto."
           + " Se debe indicar el valor de filtrado. Cada filtro debe seguir el formato 'campo:operador:valor'.";
+  private static final String MESSAGE_FILTER_LIST_FORMAT_INCORRECT =
+      "El valor del filtro '%s' debe tener formato '[valor1,valor2,...]'.";
   private static final String MESSAGE_FILTER_FIELD_NOT_ALLOWED
       = "El campo '%s' no está permitido para el filtrado. La lista de campos permitidos es [%s].";
 
@@ -117,7 +119,20 @@ public abstract class CriteriaFactory {
       if (filterSegments[2].isBlank()) {
         throw new BadRequestException(MESSAGE_FILTER_VALUE_CANNOT_BE_EMPTY);
       }
+      final FilterConfig config = configFilterWhiteList().get(filterSegments[0]);
+      if (config != null && config.isList() && !isValidListFormat(filterSegments[2])) {
+        throw new BadRequestException(MESSAGE_FILTER_LIST_FORMAT_INCORRECT.formatted(filterSegments[0]));
+      }
     });
+  }
+
+  private boolean isValidListFormat(final String value) {
+    final String trimmed = value.strip();
+    if (!trimmed.startsWith("[") || !trimmed.endsWith("]")) {
+      return false;
+    }
+    final String inner = trimmed.substring(1, trimmed.length() - 1).strip();
+    return !inner.isBlank();
   }
 
   private void validateAllFiltersAreInWhiteList(final String filters) {
@@ -130,10 +145,10 @@ public abstract class CriteriaFactory {
     });
   }
 
-  protected abstract Map<String, Schema> configFilterWhiteListAndSchemas();
+  protected abstract Map<String, FilterConfig> configFilterWhiteList();
 
   private Set<String> filterWhiteList() {
-    return configFilterWhiteListAndSchemas().keySet();
+    return configFilterWhiteList().keySet();
   }
 
   private List<PlainFilter> makeFilterList(final String filters) {
@@ -142,13 +157,23 @@ public abstract class CriteriaFactory {
         .map(filter -> {
           final String[] filterSegments = filter.split(INTERNAL_FILTER_AND_SORT_SEPARATOR,
               MAX_NUMBER_OF_FILTER_SEGMENTS);
+          final FilterConfig config = configFilterWhiteList().get(filterSegments[0]);
+          final String value = config.isList()
+              ? stripBrackets(filterSegments[2])
+              : filterSegments[2];
           return PlainFilter.of(
               filterSegments[0],
               filterSegments[1],
-              filterSegments[2],
-              configFilterWhiteListAndSchemas().get(filterSegments[0])
+              value,
+              config.type(),
+              config.isList(),
+              config.operators()
           );
         }).toList();
+  }
+
+  private String stripBrackets(final String value) {
+    return value.strip().substring(1, value.strip().length() - 1).strip();
   }
 
   private void validateSortStringFormat(final String filters) {

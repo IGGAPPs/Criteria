@@ -1,6 +1,8 @@
 package es.iggapps.criteria.common.domain.criteria.model.filter;
 
 import es.iggapps.criteria.common.domain.criteria.model.Field;
+import es.iggapps.criteria.common.domain.criteria.model.filter.parsers.ListParser;
+import es.iggapps.criteria.common.domain.criteria.model.filter.parsers.ValueParser;
 import es.iggapps.criteria.common.domain.criteria.plain.PlainFilter;
 import es.iggapps.criteria.common.domain.exception.CriteriaException;
 import es.iggapps.criteria.common.domain.exception.DomainException;
@@ -11,7 +13,7 @@ import java.util.Optional;
 import lombok.Getter;
 
 @Getter
-public abstract class Filter<E> {
+public class Filter<E> {
 
   private static final String MESSAGE_FILTER_IN_NOT_BELONGS_TO_THIS_FILTER
       = "Alguno de los filtros 'In' no pertenece a este filtro provocando un estado inconsistente.";
@@ -20,18 +22,21 @@ public abstract class Filter<E> {
   private static final String MESSAGE_VALUE_EMPTY =
       "El valor para el filtro '%s' con operador '%s' no puede estar vacío.";
 
-  protected final Field field;
-  protected final Map<Operator, E> operatorValueMap;
-  protected final Schema type;
+  private final Field field;
+  private final Map<Operator, E> operatorValueMap;
+  private final Type type;
+  private final boolean isList;
 
-  protected Filter(final Field field, final List<PlainFilter> plainFilterList, final Schema type) {
+  public Filter(final Field field, final List<PlainFilter> plainFilterList) {
     this.field = field;
-    this.type = type;
+    this.type = plainFilterList.getFirst().getType();
+    this.isList = plainFilterList.getFirst().isList();
 
     if (plainFilterList.stream().anyMatch(plainFilter -> !plainFilter.getField().equals(field))) {
       throw new DomainException(MESSAGE_FILTER_IN_NOT_BELONGS_TO_THIS_FILTER);
     }
 
+    final ValueParser<E> parser = buildParser();
     final Map<Operator, E> operatorValueMap1 = new HashMap<>();
 
     plainFilterList.forEach(plainFilter -> {
@@ -46,14 +51,21 @@ public abstract class Filter<E> {
       }
       operatorValueMap1.put(
           operator,
-          configValueParsing(plainFilter.getValue().toString())
+          parser.parse(plainFilter.getValue().toString(), field.getField())
       );
     });
 
     this.operatorValueMap = Map.copyOf(operatorValueMap1);
   }
 
-  protected abstract E configValueParsing(String value);
+  @SuppressWarnings("unchecked")
+  private ValueParser<E> buildParser() {
+    final ValueParser<?> baseParser = type.getParser();
+    if (isList) {
+      return (ValueParser<E>) new ListParser<>(baseParser);
+    }
+    return (ValueParser<E>) baseParser;
+  }
 
   public Optional<E> withOperator(final Operator operator) {
     return Optional.ofNullable(operatorValueMap.get(operator));

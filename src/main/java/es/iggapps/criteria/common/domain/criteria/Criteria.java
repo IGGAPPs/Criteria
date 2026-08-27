@@ -44,7 +44,8 @@ public final class Criteria {
             filter.getField().getField(),
             operator,
             value,
-            filter.getType()
+            filter.getType(),
+            filter.isList()
         )));
   }
 

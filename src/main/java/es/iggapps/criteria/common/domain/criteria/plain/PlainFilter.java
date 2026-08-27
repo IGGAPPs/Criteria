@@ -2,9 +2,9 @@ package es.iggapps.criteria.common.domain.criteria.plain;
 
 import es.iggapps.criteria.common.domain.criteria.model.Field;
 import es.iggapps.criteria.common.domain.criteria.model.filter.Operator;
-import es.iggapps.criteria.common.domain.criteria.model.filter.Schema;
+import es.iggapps.criteria.common.domain.criteria.model.filter.Type;
 import es.iggapps.criteria.common.domain.exception.CriteriaException;
-import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -21,16 +21,15 @@ public final class PlainFilter {
   private final Field field;
   private final Operator operator;
   private final Object value;
-  private final Schema schema;
+  private final Type type;
+  private final boolean isList;
 
   public static PlainFilter of(final String field, final String operator, final Object value,
-      final Schema schema) {
-    Operator operator1;
-    final List<Operator> operatorWhiteList = schema.getOperatorWhiteList();
-    final List<String> operatorNameWhiteList = schema.getOperatorWhiteList()
-        .stream()
+      final Type type, final boolean isList, final Set<Operator> allowedOperators) {
+    final Operator operator1;
+    final Set<String> operatorNameWhiteList = allowedOperators.stream()
         .map(Operator::name)
-        .toList();
+        .collect(Collectors.toUnmodifiableSet());
     final String formattedOperatorNameWhiteList = operatorNameWhiteList.stream()
         .map(operatorName -> "'" + operatorName + "'")
         .collect(Collectors.joining(", "));
@@ -42,14 +41,19 @@ public final class PlainFilter {
     } catch (IllegalArgumentException ex) {
       throw new CriteriaException(operatorInvalidMessage, ex);
     }
-    if (!operatorWhiteList.contains(operator1)) {
+    if (!allowedOperators.contains(operator1)) {
       throw new CriteriaException(operatorInvalidMessage);
     }
-    return new PlainFilter(Field.of(field), operator1, value, schema);
+    return new PlainFilter(Field.of(field), operator1, value, type, isList);
   }
 
   public static PlainFilter of(final String field, final Operator operator, final Object value,
-      final Schema schema) {
-    return new PlainFilter(Field.of(field), operator, value, schema);
+      final Type type, final boolean isList) {
+    return new PlainFilter(Field.of(field), operator, value, type, isList);
+  }
+
+  public static PlainFilter of(final String field, final Operator operator, final Object value,
+      final Type type) {
+    return new PlainFilter(Field.of(field), operator, value, type, false);
   }
 }
