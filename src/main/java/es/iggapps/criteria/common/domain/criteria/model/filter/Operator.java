@@ -6,7 +6,7 @@ public enum Operator {
   FZ,
   GTE,
   LTE,
-  CONTAINSALL;
+  CONTAINSANY;
 
 
   public static Operator fromString(final String operator) {

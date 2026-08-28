@@ -14,9 +14,9 @@ public enum Schema {
   FUZZY_STRING_EQUALS(List.of(Operator.FZ)),
   FECHA_PENINSULAR_GTE(List.of(Operator.GTE)),
   FECHA_PENINSULAR_LTE(List.of(Operator.LTE)),
-  CONTAINS_ALL_STRINGS(List.of(Operator.CONTAINSALL)),
-  CONTAINS_ALL_NUMBERS(List.of(Operator.CONTAINSALL)),
-  CONTAINS_ALL_UUIDS(List.of(Operator.CONTAINSALL));
+  CONTAINS_ALL_STRINGS(List.of(Operator.CONTAINSANY)),
+  CONTAINS_ALL_NUMBERS(List.of(Operator.CONTAINSANY)),
+  CONTAINS_ALL_UUIDS(List.of(Operator.CONTAINSANY));
 
   private final List<Operator> operatorWhiteList;
 }

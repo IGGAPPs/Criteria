@@ -51,7 +51,7 @@ class ContainsAllNumbersFilterTest {
   @Test
   void givenValidNumberList_whenMake_thenFilterCreated() {
     Criteria criteria = factory.make(
-        Optional.of("ids:containsAll:(1,2,3)"),
+        Optional.of("ids:containsAny:(1,2,3)"),
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
@@ -59,43 +59,43 @@ class ContainsAllNumbersFilterTest {
 
     assertThat(criteria.findFilterBy(FIELD)).isPresent();
     Filter<List<Integer>> filter = criteria.getFilterOrElseThrow(FIELD);
-    assertThat(filter.withOperator(Operator.CONTAINSALL)).isPresent();
-    assertThat(filter.withOperator(Operator.CONTAINSALL).get())
+    assertThat(filter.withOperator(Operator.CONTAINSANY)).isPresent();
+    assertThat(filter.withOperator(Operator.CONTAINSANY).get())
         .containsExactly(1, 2, 3);
   }
 
   @Test
   void givenSingleElementList_whenMake_thenFilterCreated() {
     Criteria criteria = factory.make(
-        Optional.of("ids:containsAll:(42)"),
+        Optional.of("ids:containsAny:(42)"),
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
     );
 
     Filter<List<Integer>> filter = criteria.getFilterOrElseThrow(FIELD);
-    assertThat(filter.withOperator(Operator.CONTAINSALL).get())
+    assertThat(filter.withOperator(Operator.CONTAINSANY).get())
         .containsExactly(42);
   }
 
   @Test
   void givenListWithWhitespace_whenMake_thenElementsAreTrimmed() {
     Criteria criteria = factory.make(
-        Optional.of("ids:containsAll:( 1 , 2 )"),
+        Optional.of("ids:containsAny:( 1 , 2 )"),
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
     );
 
     Filter<List<Integer>> filter = criteria.getFilterOrElseThrow(FIELD);
-    assertThat(filter.withOperator(Operator.CONTAINSALL).get())
+    assertThat(filter.withOperator(Operator.CONTAINSANY).get())
         .containsExactly(1, 2);
   }
 
   @Test
   void givenNonNumericElement_whenMake_thenBadRequestException() {
     assertThatThrownBy(() -> factory.make(
-        Optional.of("ids:containsAll:(1,abc,3)"),
+        Optional.of("ids:containsAny:(1,abc,3)"),
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
@@ -105,7 +105,7 @@ class ContainsAllNumbersFilterTest {
   @Test
   void givenFormatWithoutParentheses_whenMake_thenBadRequestException() {
     assertThatThrownBy(() -> factory.make(
-        Optional.of("ids:containsAll:1,2,3"),
+        Optional.of("ids:containsAny:1,2,3"),
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
@@ -115,7 +115,7 @@ class ContainsAllNumbersFilterTest {
   @Test
   void givenEmptyList_whenMake_thenBadRequestException() {
     assertThatThrownBy(() -> factory.make(
-        Optional.of("ids:containsAll:()"),
+        Optional.of("ids:containsAny:()"),
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
@@ -125,7 +125,7 @@ class ContainsAllNumbersFilterTest {
   @Test
   void givenEmptyValue_whenMake_thenBadRequestException() {
     assertThatThrownBy(() -> factory.make(
-        Optional.of("ids:containsAll:"),
+        Optional.of("ids:containsAny:"),
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
@@ -135,7 +135,7 @@ class ContainsAllNumbersFilterTest {
   @Test
   void givenFieldNotInWhitelist_whenMake_thenBadRequestException() {
     assertThatThrownBy(() -> factory.make(
-        Optional.of("unknown:containsAll:(1)"),
+        Optional.of("unknown:containsAny:(1)"),
         Optional.empty(),
         Optional.empty(),
         Optional.empty()

@@ -62,14 +62,14 @@ class CodigoPaisContainsAllIntegrationTest {
   @Test
   void givenValid3DigitCodes_whenValidate_thenNoException() {
     Criteria criteria = factory.make(
-        Optional.of("paises:containsAll:(123,456,789)"),
+        Optional.of("paises:containsAny:(123,456,789)"),
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
     );
 
     Filter<List<String>> filter = criteria.getFilterOrElseThrow(FIELD);
-    List<String> values = filter.withOperator(Operator.CONTAINSALL).get();
+    List<String> values = filter.withOperator(Operator.CONTAINSANY).get();
 
     assertThat(values).containsExactly("123", "456", "789");
     validateCodigoPais(values);
@@ -78,14 +78,14 @@ class CodigoPaisContainsAllIntegrationTest {
   @Test
   void givenCodesWithWrongLength_whenValidate_thenBadRequestException() {
     Criteria criteria = factory.make(
-        Optional.of("paises:containsAll:(12,1234,123)"),
+        Optional.of("paises:containsAny:(12,1234,123)"),
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
     );
 
     Filter<List<String>> filter = criteria.getFilterOrElseThrow(FIELD);
-    List<String> values = filter.withOperator(Operator.CONTAINSALL).get();
+    List<String> values = filter.withOperator(Operator.CONTAINSANY).get();
 
     assertThatThrownBy(() -> validateCodigoPais(values))
         .isInstanceOf(BadRequestException.class)
@@ -95,14 +95,14 @@ class CodigoPaisContainsAllIntegrationTest {
   @Test
   void givenCodeWithLetters_whenValidate_thenBadRequestException() {
     Criteria criteria = factory.make(
-        Optional.of("paises:containsAll:(12a,456)"),
+        Optional.of("paises:containsAny:(12a,456)"),
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
     );
 
     Filter<List<String>> filter = criteria.getFilterOrElseThrow(FIELD);
-    List<String> values = filter.withOperator(Operator.CONTAINSALL).get();
+    List<String> values = filter.withOperator(Operator.CONTAINSANY).get();
 
     assertThatThrownBy(() -> validateCodigoPais(values))
         .isInstanceOf(BadRequestException.class)
@@ -112,14 +112,14 @@ class CodigoPaisContainsAllIntegrationTest {
   @Test
   void givenSingleValidCode_whenValidate_thenNoException() {
     Criteria criteria = factory.make(
-        Optional.of("paises:containsAll:(007)"),
+        Optional.of("paises:containsAny:(007)"),
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
     );
 
     Filter<List<String>> filter = criteria.getFilterOrElseThrow(FIELD);
-    List<String> values = filter.withOperator(Operator.CONTAINSALL).get();
+    List<String> values = filter.withOperator(Operator.CONTAINSANY).get();
 
     assertThat(values).containsExactly("007");
     validateCodigoPais(values);
