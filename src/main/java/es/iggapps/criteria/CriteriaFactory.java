@@ -28,6 +28,8 @@ public abstract class CriteriaFactory {
 
   private static final String EXTERNAL_FILTER_AND_SORT_SEPARATOR = ",";
   private static final String INTERNAL_FILTER_AND_SORT_SEPARATOR = ":";
+  private static final String LIST_OPEN_DELIMITER = "(";
+  private static final String LIST_CLOSE_DELIMITER = ")";
   private static final Integer MAX_NUMBER_OF_FILTER_SEGMENTS = 3;
   private static final Integer NUMBER_OF_SORT_SEGMENTS = 2;
   private static final Integer DEFAULT_PAGE_SIZE = 25;
@@ -184,7 +186,7 @@ public abstract class CriteriaFactory {
 
   private String validateAndStripParentheses(final String value, final String field) {
     final String trimmed = value.strip();
-    if (!trimmed.startsWith("(") || !trimmed.endsWith(")")) {
+    if (!trimmed.startsWith(LIST_OPEN_DELIMITER) || !trimmed.endsWith(LIST_CLOSE_DELIMITER)) {
       throw new BadRequestException(
           MESSAGE_FILTER_VALUE_INVALID_LIST_FORMAT.formatted(field));
     }
@@ -253,10 +255,10 @@ public abstract class CriteriaFactory {
     int depth = 0;
     for (int i = 0; i < value.length(); i++) {
       final char c = value.charAt(i);
-      if (c == '(') {
+      if (c == LIST_OPEN_DELIMITER.charAt(0)) {
         depth++;
         current.append(c);
-      } else if (c == ')') {
+      } else if (c == LIST_CLOSE_DELIMITER.charAt(0)) {
         depth--;
         current.append(c);
       } else if (c == ',' && depth == 0) {
