@@ -10,8 +10,8 @@ import java.util.UUID;
 
 public final class UUIDEqualsFilter extends Filter<UUID> {
 
-  public static final Schema TYPE = Schema.STRING_EQUALS;
-  private static final String MESSAGGE_VALUE_IN_NOT_AN_UUID = "El filtro '%s' contiene un valor que no es de tipo UUID";
+  public static final Schema TYPE = Schema.UUID_EQUALS;
+  private static final String MESSAGE_VALUE_IS_NOT_AN_UUID = "El filtro '%s' contiene un valor que no es de tipo UUID";
 
   private UUIDEqualsFilter(final Field field, final List<PlainFilter> plainFilterList) {
     super(field, plainFilterList, TYPE);
@@ -27,7 +27,7 @@ public final class UUIDEqualsFilter extends Filter<UUID> {
     try {
       uuid = UUID.fromString(value);
     } catch (IllegalArgumentException ex) {
-      throw new CriteriaException(MESSAGGE_VALUE_IN_NOT_AN_UUID.formatted(field.getField()), ex);
+      throw new CriteriaException(MESSAGE_VALUE_IS_NOT_AN_UUID.formatted(field.getField()), ex);
     }
 
     return uuid;

@@ -26,7 +26,12 @@ public abstract class CriteriaFactory {
   @Autowired
   private ExceptionMessageService exceptionMessageService;
 
-  /* Filter error messages */
+  private static final String EXTERNAL_FILTER_AND_SORT_SEPARATOR = ",";
+  private static final String INTERNAL_FILTER_AND_SORT_SEPARATOR = ":";
+  private static final Integer MAX_NUMBER_OF_FILTER_SEGMENTS = 3;
+  private static final Integer NUMBER_OF_SORT_SEGMENTS = 2;
+  private static final Integer DEFAULT_PAGE_SIZE = 25;
+
   private static final String MESSAGE_FILTERS_FORMAT_INCORRECT
       = "El formato del parámetro 'filters' es incorrecto. Cada filtro debe seguir el formato 'campo:operador:valor'.";
   private static final String MESSAGE_FILTER_FIELD_CANNOT_BE_EMPTY =
@@ -41,8 +46,10 @@ public abstract class CriteriaFactory {
           + " Se debe indicar el valor de filtrado. Cada filtro debe seguir el formato 'campo:operador:valor'.";
   private static final String MESSAGE_FILTER_FIELD_NOT_ALLOWED
       = "El campo '%s' no está permitido para el filtrado. La lista de campos permitidos es [%s].";
-
-  /* Sort error messages */
+  private static final String MESSAGE_FILTER_VALUE_INVALID_BRACKET_FORMAT =
+      "El valor del filtro '%s' debe tener formato '[valor1,valor2,...]'.";
+  private static final String MESSAGE_FILTER_VALUE_EMPTY_LIST =
+      "La lista de valores del filtro '%s' no puede estar vacía.";
   private static final String MESSAGE_SORTS_FORMAT_INCORRECT
       = "El formato del parámetro 'sorts' es incorrecto. Cada ordenación debe seguir el formato 'campo:orden'.";
   private static final String MESSAGE_SORT_FIELD_CANNOT_BE_EMPTY =
@@ -54,11 +61,9 @@ public abstract class CriteriaFactory {
   private static final String MESSAGE_SORT_FIELD_NOT_ALLOWED
       = "El campo '%s' no está permitido para la ordenación. La lista de campos permitidos es [%s].";
 
-  private static final String EXTERNAL_FILTER_AND_SORT_SEPARATOR = ",";
-  private static final String INTERNAL_FILTER_AND_SORT_SEPARATOR = ":";
-  private static final Integer MAX_NUMBER_OF_FILTER_SEGMENTS = 3;
-  private static final Integer NUMBER_OF_SORT_SEGMENTS = 2;
-  private static final Integer DEFAULT_PAGE_SIZE = 25;
+  // ──────────────────────────────────────────────
+  // 1. Public API
+  // ──────────────────────────────────────────────
 
   public final Criteria make(
       final Optional<String> filters,
@@ -100,6 +105,36 @@ public abstract class CriteriaFactory {
     }
   }
 
+  // ──────────────────────────────────────────────
+  // 2. Protected abstract - Configuration hooks
+  // ──────────────────────────────────────────────
+
+  protected abstract Map<String, Schema> configFilterWhiteListAndSchemas();
+
+  protected abstract Set<String> configSortWhiteList();
+
+  protected abstract List<PlainSort> configDefaultSort();
+
+  // ──────────────────────────────────────────────
+  // 3. Protected config - With defaults
+  // ──────────────────────────────────────────────
+
+  protected Set<Schema> configSchemasRequiringBrackets() {
+    return Set.of(
+        Schema.CONTAINS_ALL_STRINGS,
+        Schema.CONTAINS_ALL_NUMBERS,
+        Schema.CONTAINS_ALL_UUIDS
+    );
+  }
+
+  protected Integer configDefaultPageSize() {
+    return DEFAULT_PAGE_SIZE;
+  }
+
+  // ──────────────────────────────────────────────
+  // 4. Private - Filter
+  // ──────────────────────────────────────────────
+
   private void validateFilterStringFormat(final String filters) {
     splitRespectingBrackets(filters).forEach(filter -> {
       final String[] filterSegments = filter.split(INTERNAL_FILTER_AND_SORT_SEPARATOR,
@@ -130,26 +165,40 @@ public abstract class CriteriaFactory {
     });
   }
 
-  protected abstract Map<String, Schema> configFilterWhiteListAndSchemas();
-
-  private Set<String> filterWhiteList() {
-    return configFilterWhiteListAndSchemas().keySet();
-  }
-
   private List<PlainFilter> makeFilterList(final String filters) {
     return splitRespectingBrackets(filters)
         .stream()
         .map(filter -> {
           final String[] filterSegments = filter.split(INTERNAL_FILTER_AND_SORT_SEPARATOR,
               MAX_NUMBER_OF_FILTER_SEGMENTS);
-          return PlainFilter.of(
-              filterSegments[0],
-              filterSegments[1],
-              filterSegments[2],
-              configFilterWhiteListAndSchemas().get(filterSegments[0])
-          );
+          final String field = filterSegments[0];
+          final String operator = filterSegments[1];
+          final String rawValue = filterSegments[2];
+          final Schema schema = configFilterWhiteListAndSchemas().get(field);
+          final String value = configSchemasRequiringBrackets().contains(schema)
+              ? validateAndStripBrackets(rawValue, field)
+              : rawValue;
+          return PlainFilter.of(field, operator, value, schema);
         }).toList();
   }
+
+  private String validateAndStripBrackets(final String value, final String field) {
+    final String trimmed = value.strip();
+    if (!trimmed.startsWith("[") || !trimmed.endsWith("]")) {
+      throw new BadRequestException(
+          MESSAGE_FILTER_VALUE_INVALID_BRACKET_FORMAT.formatted(field));
+    }
+    final String inner = trimmed.substring(1, trimmed.length() - 1).strip();
+    if (inner.isBlank()) {
+      throw new BadRequestException(
+          MESSAGE_FILTER_VALUE_EMPTY_LIST.formatted(field));
+    }
+    return inner;
+  }
+
+  // ──────────────────────────────────────────────
+  // 5. Private - Sort
+  // ──────────────────────────────────────────────
 
   private void validateSortStringFormat(final String filters) {
     Arrays.stream(filters.split(EXTERNAL_FILTER_AND_SORT_SEPARATOR, -1)).forEach(sort -> {
@@ -177,8 +226,6 @@ public abstract class CriteriaFactory {
     });
   }
 
-  protected abstract Set<String> configSortWhiteList();
-
   private List<PlainSort> makeSortList(final String sorts) {
     return Arrays.stream(sorts.split(EXTERNAL_FILTER_AND_SORT_SEPARATOR, -1))
         .map(sort -> {
@@ -192,11 +239,13 @@ public abstract class CriteriaFactory {
         }).toList();
   }
 
-  protected Integer configDefaultPageSize() {
-    return DEFAULT_PAGE_SIZE;
-  }
+  // ──────────────────────────────────────────────
+  // 6. Private - Utility
+  // ──────────────────────────────────────────────
 
-  protected abstract List<PlainSort> configDefaultSort();
+  private Set<String> filterWhiteList() {
+    return configFilterWhiteListAndSchemas().keySet();
+  }
 
   private List<String> splitRespectingBrackets(final String value) {
     final List<String> result = new ArrayList<>();
