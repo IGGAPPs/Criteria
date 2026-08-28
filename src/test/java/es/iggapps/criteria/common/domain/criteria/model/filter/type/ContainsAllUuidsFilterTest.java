@@ -54,7 +54,7 @@ class ContainsAllUuidsFilterTest {
   @Test
   void givenValidUuidList_whenMake_thenFilterCreated() {
     Criteria criteria = factory.make(
-        Optional.of("uuids:CONTAINS_ALL:[" + UUID1 + "," + UUID2 + "]"),
+        Optional.of("uuids:containsAll:(" + UUID1 + "," + UUID2 + ")"),
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
@@ -62,29 +62,29 @@ class ContainsAllUuidsFilterTest {
 
     assertThat(criteria.findFilterBy(FIELD)).isPresent();
     Filter<List<UUID>> filter = criteria.getFilterOrElseThrow(FIELD);
-    assertThat(filter.withOperator(Operator.CONTAINS_ALL)).isPresent();
-    assertThat(filter.withOperator(Operator.CONTAINS_ALL).get())
+    assertThat(filter.withOperator(Operator.CONTAINSALL)).isPresent();
+    assertThat(filter.withOperator(Operator.CONTAINSALL).get())
         .containsExactly(UUID.fromString(UUID1), UUID.fromString(UUID2));
   }
 
   @Test
   void givenSingleElementList_whenMake_thenFilterCreated() {
     Criteria criteria = factory.make(
-        Optional.of("uuids:CONTAINS_ALL:[" + UUID1 + "]"),
+        Optional.of("uuids:containsAll:(" + UUID1 + ")"),
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
     );
 
     Filter<List<UUID>> filter = criteria.getFilterOrElseThrow(FIELD);
-    assertThat(filter.withOperator(Operator.CONTAINS_ALL).get())
+    assertThat(filter.withOperator(Operator.CONTAINSALL).get())
         .containsExactly(UUID.fromString(UUID1));
   }
 
   @Test
   void givenNonUuidElement_whenMake_thenBadRequestException() {
     assertThatThrownBy(() -> factory.make(
-        Optional.of("uuids:CONTAINS_ALL:[" + UUID1 + ",not-a-uuid]"),
+        Optional.of("uuids:containsAll:(" + UUID1 + ",not-a-uuid)"),
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
@@ -92,9 +92,9 @@ class ContainsAllUuidsFilterTest {
   }
 
   @Test
-  void givenFormatWithoutBrackets_whenMake_thenBadRequestException() {
+  void givenFormatWithoutParentheses_whenMake_thenBadRequestException() {
     assertThatThrownBy(() -> factory.make(
-        Optional.of("uuids:CONTAINS_ALL:" + UUID1),
+        Optional.of("uuids:containsAll:" + UUID1),
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
@@ -104,7 +104,7 @@ class ContainsAllUuidsFilterTest {
   @Test
   void givenEmptyList_whenMake_thenBadRequestException() {
     assertThatThrownBy(() -> factory.make(
-        Optional.of("uuids:CONTAINS_ALL:[]"),
+        Optional.of("uuids:containsAll:()"),
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
@@ -114,7 +114,7 @@ class ContainsAllUuidsFilterTest {
   @Test
   void givenEmptyValue_whenMake_thenBadRequestException() {
     assertThatThrownBy(() -> factory.make(
-        Optional.of("uuids:CONTAINS_ALL:"),
+        Optional.of("uuids:containsAll:"),
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
@@ -124,7 +124,7 @@ class ContainsAllUuidsFilterTest {
   @Test
   void givenFieldNotInWhitelist_whenMake_thenBadRequestException() {
     assertThatThrownBy(() -> factory.make(
-        Optional.of("unknown:CONTAINS_ALL:[" + UUID1 + "]"),
+        Optional.of("unknown:containsAll:(" + UUID1 + ")"),
         Optional.empty(),
         Optional.empty(),
         Optional.empty()

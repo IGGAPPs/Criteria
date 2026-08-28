@@ -51,7 +51,7 @@ class ContainsAllStringsFilterTest {
   @Test
   void givenValidStringList_whenMake_thenFilterCreated() {
     Criteria criteria = factory.make(
-        Optional.of("tags:CONTAINS_ALL:[java,python,javascript]"),
+        Optional.of("tags:containsAll:(java,python,javascript)"),
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
@@ -59,43 +59,43 @@ class ContainsAllStringsFilterTest {
 
     assertThat(criteria.findFilterBy(FIELD)).isPresent();
     Filter<List<String>> filter = criteria.getFilterOrElseThrow(FIELD);
-    assertThat(filter.withOperator(Operator.CONTAINS_ALL)).isPresent();
-    assertThat(filter.withOperator(Operator.CONTAINS_ALL).get())
+    assertThat(filter.withOperator(Operator.CONTAINSALL)).isPresent();
+    assertThat(filter.withOperator(Operator.CONTAINSALL).get())
         .containsExactly("java", "python", "javascript");
   }
 
   @Test
   void givenSingleElementList_whenMake_thenFilterCreated() {
     Criteria criteria = factory.make(
-        Optional.of("tags:CONTAINS_ALL:[java]"),
+        Optional.of("tags:containsAll:(java)"),
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
     );
 
     Filter<List<String>> filter = criteria.getFilterOrElseThrow(FIELD);
-    assertThat(filter.withOperator(Operator.CONTAINS_ALL).get())
+    assertThat(filter.withOperator(Operator.CONTAINSALL).get())
         .containsExactly("java");
   }
 
   @Test
   void givenListWithWhitespace_whenMake_thenElementsAreTrimmed() {
     Criteria criteria = factory.make(
-        Optional.of("tags:CONTAINS_ALL:[ java , python ]"),
+        Optional.of("tags:containsAll:( java , python )"),
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
     );
 
     Filter<List<String>> filter = criteria.getFilterOrElseThrow(FIELD);
-    assertThat(filter.withOperator(Operator.CONTAINS_ALL).get())
+    assertThat(filter.withOperator(Operator.CONTAINSALL).get())
         .containsExactly("java", "python");
   }
 
   @Test
-  void givenFormatWithoutBrackets_whenMake_thenBadRequestException() {
+  void givenFormatWithoutParentheses_whenMake_thenBadRequestException() {
     assertThatThrownBy(() -> factory.make(
-        Optional.of("tags:CONTAINS_ALL:java,python"),
+        Optional.of("tags:containsAll:java,python"),
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
@@ -105,7 +105,7 @@ class ContainsAllStringsFilterTest {
   @Test
   void givenEmptyList_whenMake_thenBadRequestException() {
     assertThatThrownBy(() -> factory.make(
-        Optional.of("tags:CONTAINS_ALL:[]"),
+        Optional.of("tags:containsAll:()"),
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
@@ -115,7 +115,7 @@ class ContainsAllStringsFilterTest {
   @Test
   void givenEmptyValue_whenMake_thenBadRequestException() {
     assertThatThrownBy(() -> factory.make(
-        Optional.of("tags:CONTAINS_ALL:"),
+        Optional.of("tags:containsAll:"),
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
@@ -125,7 +125,7 @@ class ContainsAllStringsFilterTest {
   @Test
   void givenFieldNotInWhitelist_whenMake_thenBadRequestException() {
     assertThatThrownBy(() -> factory.make(
-        Optional.of("unknown:CONTAINS_ALL:[java]"),
+        Optional.of("unknown:containsAll:(java)"),
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
@@ -135,7 +135,7 @@ class ContainsAllStringsFilterTest {
   @Test
   void givenOperatorNotAllowedForSchema_whenMake_thenBadRequestException() {
     assertThatThrownBy(() -> factory.make(
-        Optional.of("tags:EQ:[java]"),
+        Optional.of("tags:EQ:(java)"),
         Optional.empty(),
         Optional.empty(),
         Optional.empty()

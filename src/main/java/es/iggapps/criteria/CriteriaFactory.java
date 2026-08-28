@@ -46,8 +46,8 @@ public abstract class CriteriaFactory {
           + " Se debe indicar el valor de filtrado. Cada filtro debe seguir el formato 'campo:operador:valor'.";
   private static final String MESSAGE_FILTER_FIELD_NOT_ALLOWED
       = "El campo '%s' no está permitido para el filtrado. La lista de campos permitidos es [%s].";
-  private static final String MESSAGE_FILTER_VALUE_INVALID_BRACKET_FORMAT =
-      "El valor del filtro '%s' debe tener formato '[valor1,valor2,...]'.";
+  private static final String MESSAGE_FILTER_VALUE_INVALID_LIST_FORMAT =
+      "El valor del filtro '%s' debe tener formato '(valor1,valor2,...)'.";
   private static final String MESSAGE_FILTER_VALUE_EMPTY_LIST =
       "La lista de valores del filtro '%s' no puede estar vacía.";
   private static final String MESSAGE_SORTS_FORMAT_INCORRECT
@@ -119,7 +119,7 @@ public abstract class CriteriaFactory {
   // 3. Protected config - With defaults
   // ──────────────────────────────────────────────
 
-  protected Set<Schema> configSchemasRequiringBrackets() {
+  protected Set<Schema> configSchemasRequiringParentheses() {
     return Set.of(
         Schema.CONTAINS_ALL_STRINGS,
         Schema.CONTAINS_ALL_NUMBERS,
@@ -136,7 +136,7 @@ public abstract class CriteriaFactory {
   // ──────────────────────────────────────────────
 
   private void validateFilterStringFormat(final String filters) {
-    splitRespectingBrackets(filters).forEach(filter -> {
+    splitRespectingParentheses(filters).forEach(filter -> {
       final String[] filterSegments = filter.split(INTERNAL_FILTER_AND_SORT_SEPARATOR,
           MAX_NUMBER_OF_FILTER_SEGMENTS);
       final int numberOfInternalSegments = filterSegments.length;
@@ -156,7 +156,7 @@ public abstract class CriteriaFactory {
   }
 
   private void validateAllFiltersAreInWhiteList(final String filters) {
-    splitRespectingBrackets(filters).forEach(filter -> {
+    splitRespectingParentheses(filters).forEach(filter -> {
       final String field = filter.split(INTERNAL_FILTER_AND_SORT_SEPARATOR, -1)[0];
       if (!filterWhiteList().contains(field)) {
         throw new BadRequestException(MESSAGE_FILTER_FIELD_NOT_ALLOWED
@@ -166,7 +166,7 @@ public abstract class CriteriaFactory {
   }
 
   private List<PlainFilter> makeFilterList(final String filters) {
-    return splitRespectingBrackets(filters)
+    return splitRespectingParentheses(filters)
         .stream()
         .map(filter -> {
           final String[] filterSegments = filter.split(INTERNAL_FILTER_AND_SORT_SEPARATOR,
@@ -175,18 +175,18 @@ public abstract class CriteriaFactory {
           final String operator = filterSegments[1];
           final String rawValue = filterSegments[2];
           final Schema schema = configFilterWhiteListAndSchemas().get(field);
-          final String value = configSchemasRequiringBrackets().contains(schema)
-              ? validateAndStripBrackets(rawValue, field)
+          final String value = configSchemasRequiringParentheses().contains(schema)
+              ? validateAndStripParentheses(rawValue, field)
               : rawValue;
           return PlainFilter.of(field, operator, value, schema);
         }).toList();
   }
 
-  private String validateAndStripBrackets(final String value, final String field) {
+  private String validateAndStripParentheses(final String value, final String field) {
     final String trimmed = value.strip();
-    if (!trimmed.startsWith("[") || !trimmed.endsWith("]")) {
+    if (!trimmed.startsWith("(") || !trimmed.endsWith(")")) {
       throw new BadRequestException(
-          MESSAGE_FILTER_VALUE_INVALID_BRACKET_FORMAT.formatted(field));
+          MESSAGE_FILTER_VALUE_INVALID_LIST_FORMAT.formatted(field));
     }
     final String inner = trimmed.substring(1, trimmed.length() - 1).strip();
     if (inner.isBlank()) {
@@ -247,19 +247,19 @@ public abstract class CriteriaFactory {
     return configFilterWhiteListAndSchemas().keySet();
   }
 
-  private List<String> splitRespectingBrackets(final String value) {
+  private List<String> splitRespectingParentheses(final String value) {
     final List<String> result = new ArrayList<>();
     final StringBuilder current = new StringBuilder();
-    int bracketDepth = 0;
+    int depth = 0;
     for (int i = 0; i < value.length(); i++) {
       final char c = value.charAt(i);
-      if (c == '[') {
-        bracketDepth++;
+      if (c == '(') {
+        depth++;
         current.append(c);
-      } else if (c == ']') {
-        bracketDepth--;
+      } else if (c == ')') {
+        depth--;
         current.append(c);
-      } else if (c == ',' && bracketDepth == 0) {
+      } else if (c == ',' && depth == 0) {
         result.add(current.toString());
         current.setLength(0);
       } else {
