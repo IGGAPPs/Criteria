@@ -32,7 +32,7 @@ class CriteriaFilterIntegrationTest {
       protected Map<String, FilterConfig> configFilterWhiteList() {
         return Map.of(
             "name", new FilterConfig(Type.STRING, Set.of(Operator.EQ)),
-            "description", new FilterConfig(Type.STRING, Set.of(Operator.FZ)),
+            "description", new FilterConfig(Type.STRING, Set.of(Operator.CONTAINS)),
             "quantity", new FilterConfig(Type.INTEGER, Set.of(Operator.EQ)),
             "id", new FilterConfig(Type.UUID, Set.of(Operator.EQ)),
             "tags", FilterConfig.listOf(Type.STRING, Set.of(Operator.CONTAINS_ALL)),
@@ -91,7 +91,7 @@ class CriteriaFilterIntegrationTest {
 
     @Test
     void givenInvalidOperator_whenMake_thenBadRequest() {
-      Optional<String> filters = Optional.of("name:FZ:John");
+      Optional<String> filters = Optional.of("name:INVALID:John");
       assertThatThrownBy(() -> factory.make(filters, EMPTY_STR, EMPTY_INT, EMPTY_INT))
           .isInstanceOf(CriteriaValidationException.class);
     }
@@ -106,15 +106,15 @@ class CriteriaFilterIntegrationTest {
   }
 
   @Nested
-  class FuzzyStringEquals {
+  class ContainsString {
 
     @Test
-    void givenValidFuzzyString_whenMake_thenFilterCreated() {
+    void givenValidContainsString_whenMake_thenFilterCreated() {
       Criteria criteria = factory.make(
-          Optional.of("description:FZ:laptop gamer"), EMPTY_STR, EMPTY_INT, EMPTY_INT);
+          Optional.of("description:CONTAINS:laptop gamer"), EMPTY_STR, EMPTY_INT, EMPTY_INT);
 
       Filter<String> filter = criteria.getFilterOrElseThrow("description");
-      assertThat(filter.withOperator(Operator.FZ).get()).contains("laptop gamer");
+      assertThat(filter.withOperator(Operator.CONTAINS).get()).contains("laptop gamer");
     }
 
     @Test

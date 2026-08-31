@@ -87,12 +87,32 @@ field1:operator1:value1,field2:operator2:value2
 
 ## Operators
 
-| Operator | Description | Example |
-|----------|-------------|---------|
-| `EQ` | Equals | `nombre:EQ:Laptop` |
-| `GTE` | Greater than or equal | `precio:GTE:100` |
-| `LTE` | Less than or equal | `precio:LTE:500` |
-| `CONTAINS_ALL` | List contains all values | `tags:CONTAINS_ALL:[java,spring]` |
+| Operator | Description | Types | Example |
+|----------|-------------|-------|---------|
+| `EQ` | Equals | All | `nombre:EQ:Laptop` |
+| `NEQ` | Not equals | All | `nombre:NEQ:Laptop` |
+| `GT` | Greater than | Numeric, Date | `precio:GT:100` |
+| `GTE` | Greater than or equal | Numeric, Date | `precio:GTE:100` |
+| `LT` | Less than | Numeric, Date | `precio:LT:500` |
+| `LTE` | Less than or equal | Numeric, Date | `precio:LTE:500` |
+| `BETWEEN` | Range between two values | Numeric, Date | `precio:BETWEEN:100,500` |
+| `CONTAINS` | String contains | String | `nombre:CONTAINS:laptop` |
+| `STARTS_WITH` | String starts with | String | `nombre:STARTS_WITH:lap` |
+| `ENDS_WITH` | String ends with | String | `nombre:ENDS_WITH:top` |
+| `CONTAINS_ALL` | List contains all values | List | `tags:CONTAINS_ALL:[java,spring]` |
+| `CONTAINS_ANY` | List contains any value | List | `tags:CONTAINS_ANY:[java,kotlin]` |
+
+### Custom Operators
+
+`Operator` is extensible. Add your own operators for infrastructure concerns (e.g., fuzzy search):
+
+```java
+Operator FZ = Operator.of("FZ");
+
+FilterConfig config = new FilterConfig(
+    Type.STRING, Set.of(Operator.EQ, FZ)
+);
+```
 
 ## Types
 
