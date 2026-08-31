@@ -1,15 +1,13 @@
 package es.iggapps.criteria;
 
-import es.iggapps.criteria.common.BadRequestException;
-import es.iggapps.criteria.common.domain.criteria.Criteria;
-import es.iggapps.criteria.common.domain.criteria.model.filter.FilterConfig;
-import es.iggapps.criteria.common.domain.criteria.model.filter.Filters;
-import es.iggapps.criteria.common.domain.criteria.model.page.PageNumber;
-import es.iggapps.criteria.common.domain.criteria.model.page.PageSize;
-import es.iggapps.criteria.common.domain.criteria.model.sort.Sorts;
-import es.iggapps.criteria.common.domain.criteria.plain.PlainFilter;
-import es.iggapps.criteria.common.domain.criteria.plain.PlainSort;
-import es.iggapps.criteria.common.domain.exception.CriteriaException;
+import es.iggapps.criteria.exception.CriteriaValidationException;
+import es.iggapps.criteria.filter.FilterConfig;
+import es.iggapps.criteria.filter.Filters;
+import es.iggapps.criteria.page.PageNumber;
+import es.iggapps.criteria.page.PageSize;
+import es.iggapps.criteria.sort.Sorts;
+import es.iggapps.criteria.plain.PlainFilter;
+import es.iggapps.criteria.plain.PlainSort;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -35,6 +33,8 @@ public abstract class CriteriaFactory {
           + " Se debe indicar el valor de filtrado. Cada filtro debe seguir el formato 'campo:operador:valor'.";
   private static final String MESSAGE_FILTER_LIST_FORMAT_INCORRECT =
       "El valor del filtro '%s' debe tener formato '[valor1,valor2,...]'.";
+  private static final String MESSAGE_FILTER_VALUE_DOES_NOT_MATCH_PATTERN =
+      "El valor del filtro '%s' no cumple el formato requerido.";
   private static final String MESSAGE_FILTER_FIELD_NOT_ALLOWED
       = "El campo '%s' no está permitido para el filtrado. La lista de campos permitidos es [%s].";
 
@@ -69,8 +69,8 @@ public abstract class CriteriaFactory {
       this.validateAllFiltersAreInWhiteList(filtersValue);
       try {
         plainFilterList = this.makeFilterList(filtersValue);
-      } catch (CriteriaException e) {
-        throw new BadRequestException(e.getMessage(), e);
+      } catch (CriteriaValidationException e) {
+        throw new CriteriaValidationException(e.getMessage(), e);
       }
     }
     List<PlainSort> plainSortList = configDefaultSort();
@@ -80,8 +80,8 @@ public abstract class CriteriaFactory {
       this.validateAllSortsAreInWhiteList(sortsValue);
       try {
         plainSortList = this.makeSortList(sortsValue);
-      } catch (CriteriaException e) {
-        throw new BadRequestException(e.getMessage(), e);
+      } catch (CriteriaValidationException e) {
+        throw new CriteriaValidationException(e.getMessage(), e);
       }
     }
     try {
@@ -91,8 +91,8 @@ public abstract class CriteriaFactory {
           PageNumber.of(pageNumber.orElse(0)),
           PageSize.of(pageSize.orElse(configDefaultPageSize()))
       );
-    } catch (CriteriaException e) {
-      throw new BadRequestException(e.getMessage(), e);
+    } catch (CriteriaValidationException e) {
+      throw new CriteriaValidationException(e.getMessage(), e);
     }
   }
 
@@ -102,20 +102,25 @@ public abstract class CriteriaFactory {
           MAX_NUMBER_OF_FILTER_SEGMENTS);
       final int numberOfInternalSegments = filterSegments.length;
       if (numberOfInternalSegments != MAX_NUMBER_OF_FILTER_SEGMENTS) {
-        throw new BadRequestException(MESSAGE_FILTERS_FORMAT_INCORRECT);
+        throw new CriteriaValidationException(MESSAGE_FILTERS_FORMAT_INCORRECT);
       }
       if (filterSegments[0].isBlank()) {
-        throw new BadRequestException(MESSAGE_FILTER_FIELD_CANNOT_BE_EMPTY);
+        throw new CriteriaValidationException(MESSAGE_FILTER_FIELD_CANNOT_BE_EMPTY);
       }
       if (filterSegments[1].isBlank()) {
-        throw new BadRequestException(MESSAGE_FILTER_OPERATOR_CANNOT_BE_EMPTY);
+        throw new CriteriaValidationException(MESSAGE_FILTER_OPERATOR_CANNOT_BE_EMPTY);
       }
       if (filterSegments[2].isBlank()) {
-        throw new BadRequestException(MESSAGE_FILTER_VALUE_CANNOT_BE_EMPTY);
+        throw new CriteriaValidationException(MESSAGE_FILTER_VALUE_CANNOT_BE_EMPTY);
       }
       final FilterConfig config = configFilterWhiteList().get(filterSegments[0]);
       if (config != null && config.isList() && !isValidListFormat(filterSegments[2])) {
-        throw new BadRequestException(MESSAGE_FILTER_LIST_FORMAT_INCORRECT.formatted(filterSegments[0]));
+        throw new CriteriaValidationException(MESSAGE_FILTER_LIST_FORMAT_INCORRECT.formatted(filterSegments[0]));
+      }
+      if (config != null && config.pattern() != null
+          && !filterSegments[2].matches(config.pattern())) {
+        throw new CriteriaValidationException(
+            MESSAGE_FILTER_VALUE_DOES_NOT_MATCH_PATTERN.formatted(filterSegments[0]));
       }
     });
   }
@@ -133,7 +138,7 @@ public abstract class CriteriaFactory {
     splitRespectingBrackets(filters).forEach(filter -> {
       final String field = filter.split(INTERNAL_FILTER_AND_SORT_SEPARATOR, -1)[0];
       if (!filterWhiteList().contains(field)) {
-        throw new BadRequestException(MESSAGE_FILTER_FIELD_NOT_ALLOWED
+        throw new CriteriaValidationException(MESSAGE_FILTER_FIELD_NOT_ALLOWED
             .formatted(field, "'" + String.join("','", filterWhiteList()) + "'"));
       }
     });
@@ -161,7 +166,8 @@ public abstract class CriteriaFactory {
               value,
               config.type(),
               config.isList(),
-              config.operators()
+              config.operators(),
+              config.customParser()
           );
         }).toList();
   }
@@ -175,13 +181,13 @@ public abstract class CriteriaFactory {
       final String[] sortSegments = sort.split(INTERNAL_FILTER_AND_SORT_SEPARATOR, -1);
       final int numberOfInternalSegments = sortSegments.length;
       if (numberOfInternalSegments != NUMBER_OF_SORT_SEGMENTS) {
-        throw new BadRequestException(MESSAGE_SORTS_FORMAT_INCORRECT);
+        throw new CriteriaValidationException(MESSAGE_SORTS_FORMAT_INCORRECT);
       }
       if (sortSegments[0].isBlank()) {
-        throw new BadRequestException(MESSAGE_SORT_FIELD_CANNOT_BE_EMPTY);
+        throw new CriteriaValidationException(MESSAGE_SORT_FIELD_CANNOT_BE_EMPTY);
       }
       if (sortSegments[1].isBlank()) {
-        throw new BadRequestException(MESSAGE_SORT_ORDER_CANNOT_BE_EMPTY);
+        throw new CriteriaValidationException(MESSAGE_SORT_ORDER_CANNOT_BE_EMPTY);
       }
     });
   }
@@ -190,7 +196,7 @@ public abstract class CriteriaFactory {
     Arrays.stream(sorts.split(EXTERNAL_FILTER_AND_SORT_SEPARATOR, -1)).forEach(sort -> {
       final String field = sort.split(INTERNAL_FILTER_AND_SORT_SEPARATOR, -1)[0];
       if (!configSortWhiteList().contains(field)) {
-        throw new BadRequestException(MESSAGE_SORT_FIELD_NOT_ALLOWED
+        throw new CriteriaValidationException(MESSAGE_SORT_FIELD_NOT_ALLOWED
             .formatted(field, "'" + String.join("','", configSortWhiteList()) + "'"));
       }
     });
