@@ -33,7 +33,7 @@ public final class Criteria {
     return filters.findBy(Field.of(field));
   }
 
-  public <T> Optional<Sort> findSortBy(final String field) {
+  public Optional<Sort> findSortBy(final String field) {
     return sorts.findBy(Field.of(field));
   }
 

@@ -14,6 +14,8 @@ import es.iggapps.criteria.common.domain.criteria.model.filter.parsers.UUIDParse
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class TypeTest {
 
@@ -35,21 +37,11 @@ class TypeTest {
     assertThat(new IntegerParser().parse("1", FIELD_NAME)).isEqualTo(1);
   }
 
-  @Test
-  void givenNonNumericValue_whenParseInteger_thenThrows() {
-    assertThatThrownBy(() -> new IntegerParser().parse("abc", FIELD_NAME))
-        .isInstanceOf(CriteriaException.class);
-  }
-
-  @Test
-  void givenZero_whenParseInteger_thenThrows() {
-    assertThatThrownBy(() -> new IntegerParser().parse("0", FIELD_NAME))
-        .isInstanceOf(CriteriaException.class);
-  }
-
-  @Test
-  void givenNegative_whenParseInteger_thenThrows() {
-    assertThatThrownBy(() -> new IntegerParser().parse("-5", FIELD_NAME))
+  @ParameterizedTest
+  @ValueSource(strings = {"abc", "0", "-5"})
+  void givenInvalidInteger_whenParseInteger_thenThrows(String value) {
+    IntegerParser parser = new IntegerParser();
+    assertThatThrownBy(() -> parser.parse(value, FIELD_NAME))
         .isInstanceOf(CriteriaException.class);
   }
 
@@ -62,7 +54,8 @@ class TypeTest {
 
   @Test
   void givenInvalidUuid_whenParseUuid_thenThrows() {
-    assertThatThrownBy(() -> new UUIDParser().parse("not-a-uuid", FIELD_NAME))
+    UUIDParser parser = new UUIDParser();
+    assertThatThrownBy(() -> parser.parse("not-a-uuid", FIELD_NAME))
         .isInstanceOf(CriteriaException.class);
   }
 
@@ -74,7 +67,8 @@ class TypeTest {
 
   @Test
   void givenInvalidDate_whenParseFechaPeninsular_thenThrows() {
-    assertThatThrownBy(() -> Type.FECHA_PENINSULAR.getParser().parse("15-01-2024", FIELD_NAME))
+    var parser = Type.FECHA_PENINSULAR.getParser();
+    assertThatThrownBy(() -> parser.parse("15-01-2024", FIELD_NAME))
         .isInstanceOf(CriteriaException.class);
   }
 
@@ -104,7 +98,8 @@ class TypeTest {
 
   @Test
   void givenIntegerListWithNonNumeric_whenListParser_thenThrows() {
-    assertThatThrownBy(() -> new ListParser<>(new IntegerParser()).parse("1,abc,3", FIELD_NAME))
+    ListParser<Integer> parser = new ListParser<>(new IntegerParser());
+    assertThatThrownBy(() -> parser.parse("1,abc,3", FIELD_NAME))
         .isInstanceOf(CriteriaException.class);
   }
 
@@ -119,8 +114,8 @@ class TypeTest {
   @Test
   void givenUuidListWithInvalidUuid_whenListParser_thenThrows() {
     String uuid1 = "550e8400-e29b-41d4-a716-446655440000";
-    assertThatThrownBy(
-        () -> new ListParser<>(new UUIDParser()).parse(uuid1 + ",not-a-uuid", FIELD_NAME))
+    ListParser<UUID> parser = new ListParser<>(new UUIDParser());
+    assertThatThrownBy(() -> parser.parse(uuid1 + ",not-a-uuid", FIELD_NAME))
         .isInstanceOf(CriteriaException.class);
   }
 

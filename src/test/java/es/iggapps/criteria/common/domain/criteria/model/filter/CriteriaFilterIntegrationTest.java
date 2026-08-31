@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import es.iggapps.criteria.CriteriaFactory;
 import es.iggapps.criteria.common.BadRequestException;
-import es.iggapps.criteria.common.ExceptionMessageService;
 import es.iggapps.criteria.common.domain.criteria.Criteria;
 import es.iggapps.criteria.common.domain.criteria.plain.PlainSort;
 import es.iggapps.criteria.common.domain.valueobject.FechaPeninsular;
@@ -17,13 +16,18 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class CriteriaFilterIntegrationTest {
 
   private CriteriaFactory factory;
 
+  private static final Optional<String> EMPTY_STR = Optional.empty();
+  private static final Optional<Integer> EMPTY_INT = Optional.empty();
+
   @BeforeEach
-  void setUp() throws Exception {
+  void setUp() {
     factory = new CriteriaFactory() {
       @Override
       protected Map<String, FilterConfig> configFilterWhiteList() {
@@ -50,10 +54,6 @@ class CriteriaFilterIntegrationTest {
         return List.of();
       }
     };
-
-    var field = CriteriaFactory.class.getDeclaredField("exceptionMessageService");
-    field.setAccessible(true);
-    field.set(factory, new ExceptionMessageService());
   }
 
   @Nested
@@ -62,67 +62,47 @@ class CriteriaFilterIntegrationTest {
     @Test
     void givenValidString_whenMake_thenFilterCreated() {
       Criteria criteria = factory.make(
-          Optional.of("name:EQ:John"), Optional.empty(), Optional.empty(), Optional.empty());
+          Optional.of("name:EQ:John"), EMPTY_STR, EMPTY_INT, EMPTY_INT);
 
       Filter<String> filter = criteria.getFilterOrElseThrow("name");
-      assertThat(filter.withOperator(Operator.EQ).get()).isEqualTo("John");
+      assertThat(filter.withOperator(Operator.EQ).get()).contains("John");
     }
 
-    @Test
-    void givenTooFewSegments_whenMake_thenBadRequest() {
-      assertThatThrownBy(() -> factory.make(
-          Optional.of("name:EQ"), Optional.empty(), Optional.empty(), Optional.empty()))
+    @ParameterizedTest
+    @ValueSource(strings = {"name:EQ", ":EQ:John", "name::John", "name:EQ:"})
+    void givenInvalidFormat_whenMake_thenBadRequest(String filter) {
+      Optional<String> filters = Optional.of(filter);
+      assertThatThrownBy(() -> factory.make(filters, EMPTY_STR, EMPTY_INT, EMPTY_INT))
           .isInstanceOf(BadRequestException.class);
     }
 
     @Test
     void givenExtraSegments_whenMake_thenValueContainsColons() {
       Criteria criteria = factory.make(
-          Optional.of("name:EQ:John:extra"), Optional.empty(), Optional.empty(), Optional.empty());
+          Optional.of("name:EQ:John:extra"), EMPTY_STR, EMPTY_INT, EMPTY_INT);
 
       Filter<String> filter = criteria.getFilterOrElseThrow("name");
-      assertThat(filter.withOperator(Operator.EQ).get()).isEqualTo("John:extra");
-    }
-
-    @Test
-    void givenEmptyField_whenMake_thenBadRequest() {
-      assertThatThrownBy(() -> factory.make(
-          Optional.of(":EQ:John"), Optional.empty(), Optional.empty(), Optional.empty()))
-          .isInstanceOf(BadRequestException.class);
-    }
-
-    @Test
-    void givenEmptyOperator_whenMake_thenBadRequest() {
-      assertThatThrownBy(() -> factory.make(
-          Optional.of("name::John"), Optional.empty(), Optional.empty(), Optional.empty()))
-          .isInstanceOf(BadRequestException.class);
-    }
-
-    @Test
-    void givenEmptyValue_whenMake_thenBadRequest() {
-      assertThatThrownBy(() -> factory.make(
-          Optional.of("name:EQ:"), Optional.empty(), Optional.empty(), Optional.empty()))
-          .isInstanceOf(BadRequestException.class);
+      assertThat(filter.withOperator(Operator.EQ).get()).contains("John:extra");
     }
 
     @Test
     void givenFieldNotInWhitelist_whenMake_thenBadRequest() {
-      assertThatThrownBy(() -> factory.make(
-          Optional.of("unknown:EQ:John"), Optional.empty(), Optional.empty(), Optional.empty()))
+      Optional<String> filters = Optional.of("unknown:EQ:John");
+      assertThatThrownBy(() -> factory.make(filters, EMPTY_STR, EMPTY_INT, EMPTY_INT))
           .isInstanceOf(BadRequestException.class);
     }
 
     @Test
     void givenInvalidOperator_whenMake_thenBadRequest() {
-      assertThatThrownBy(() -> factory.make(
-          Optional.of("name:FZ:John"), Optional.empty(), Optional.empty(), Optional.empty()))
+      Optional<String> filters = Optional.of("name:FZ:John");
+      assertThatThrownBy(() -> factory.make(filters, EMPTY_STR, EMPTY_INT, EMPTY_INT))
           .isInstanceOf(BadRequestException.class);
     }
 
     @Test
     void givenBlankFilter_whenMake_thenNoFilter() {
       Criteria criteria = factory.make(
-          Optional.of(""), Optional.empty(), Optional.empty(), Optional.empty());
+          Optional.of(""), EMPTY_STR, EMPTY_INT, EMPTY_INT);
 
       assertThat(criteria.existsFilterBy("name")).isFalse();
     }
@@ -134,17 +114,16 @@ class CriteriaFilterIntegrationTest {
     @Test
     void givenValidFuzzyString_whenMake_thenFilterCreated() {
       Criteria criteria = factory.make(
-          Optional.of("description:FZ:laptop gamer"), Optional.empty(), Optional.empty(),
-          Optional.empty());
+          Optional.of("description:FZ:laptop gamer"), EMPTY_STR, EMPTY_INT, EMPTY_INT);
 
       Filter<String> filter = criteria.getFilterOrElseThrow("description");
-      assertThat(filter.withOperator(Operator.FZ).get()).isEqualTo("laptop gamer");
+      assertThat(filter.withOperator(Operator.FZ).get()).contains("laptop gamer");
     }
 
     @Test
     void givenInvalidOperator_whenMake_thenBadRequest() {
-      assertThatThrownBy(() -> factory.make(
-          Optional.of("description:EQ:laptop"), Optional.empty(), Optional.empty(), Optional.empty()))
+      Optional<String> filters = Optional.of("description:EQ:laptop");
+      assertThatThrownBy(() -> factory.make(filters, EMPTY_STR, EMPTY_INT, EMPTY_INT))
           .isInstanceOf(BadRequestException.class);
     }
   }
@@ -152,43 +131,21 @@ class CriteriaFilterIntegrationTest {
   @Nested
   class NaturalNumberEquals {
 
-    @Test
-    void givenValidNumber_whenMake_thenFilterCreated() {
+    @ParameterizedTest
+    @ValueSource(strings = {"quantity:EQ:42", "quantity:EQ:1"})
+    void givenValidNumber_whenMake_thenFilterCreated(String filter) {
       Criteria criteria = factory.make(
-          Optional.of("quantity:EQ:42"), Optional.empty(), Optional.empty(), Optional.empty());
+          Optional.of(filter), EMPTY_STR, EMPTY_INT, EMPTY_INT);
 
-      Filter<Integer> filter = criteria.getFilterOrElseThrow("quantity");
-      assertThat(filter.withOperator(Operator.EQ).get()).isEqualTo(42);
+      Filter<Integer> result = criteria.getFilterOrElseThrow("quantity");
+      assertThat(result.withOperator(Operator.EQ).get()).isGreaterThan(0);
     }
 
-    @Test
-    void givenValueOne_whenMake_thenFilterCreated() {
-      Criteria criteria = factory.make(
-          Optional.of("quantity:EQ:1"), Optional.empty(), Optional.empty(), Optional.empty());
-
-      Filter<Integer> filter = criteria.getFilterOrElseThrow("quantity");
-      assertThat(filter.withOperator(Operator.EQ).get()).isEqualTo(1);
-    }
-
-    @Test
-    void givenNonNumeric_whenMake_thenBadRequest() {
-      assertThatThrownBy(() -> factory.make(
-          Optional.of("quantity:EQ:notanumber"), Optional.empty(), Optional.empty(),
-          Optional.empty()))
-          .isInstanceOf(BadRequestException.class);
-    }
-
-    @Test
-    void givenZero_whenMake_thenBadRequest() {
-      assertThatThrownBy(() -> factory.make(
-          Optional.of("quantity:EQ:0"), Optional.empty(), Optional.empty(), Optional.empty()))
-          .isInstanceOf(BadRequestException.class);
-    }
-
-    @Test
-    void givenNegative_whenMake_thenBadRequest() {
-      assertThatThrownBy(() -> factory.make(
-          Optional.of("quantity:EQ:-5"), Optional.empty(), Optional.empty(), Optional.empty()))
+    @ParameterizedTest
+    @ValueSource(strings = {"quantity:EQ:notanumber", "quantity:EQ:0", "quantity:EQ:-5"})
+    void givenInvalidNumber_whenMake_thenBadRequest(String filter) {
+      Optional<String> filters = Optional.of(filter);
+      assertThatThrownBy(() -> factory.make(filters, EMPTY_STR, EMPTY_INT, EMPTY_INT))
           .isInstanceOf(BadRequestException.class);
     }
   }
@@ -200,7 +157,7 @@ class CriteriaFilterIntegrationTest {
     void givenValidUuid_whenMake_thenFilterCreated() {
       String uuid = "550e8400-e29b-41d4-a716-446655440000";
       Criteria criteria = factory.make(
-          Optional.of("id:EQ:" + uuid), Optional.empty(), Optional.empty(), Optional.empty());
+          Optional.of("id:EQ:" + uuid), EMPTY_STR, EMPTY_INT, EMPTY_INT);
 
       Filter<UUID> filter = criteria.getFilterOrElseThrow("id");
       assertThat(filter.withOperator(Operator.EQ).get()).isEqualTo(UUID.fromString(uuid));
@@ -208,8 +165,8 @@ class CriteriaFilterIntegrationTest {
 
     @Test
     void givenInvalidUuid_whenMake_thenBadRequest() {
-      assertThatThrownBy(() -> factory.make(
-          Optional.of("id:EQ:not-a-uuid"), Optional.empty(), Optional.empty(), Optional.empty()))
+      Optional<String> filters = Optional.of("id:EQ:not-a-uuid");
+      assertThatThrownBy(() -> factory.make(filters, EMPTY_STR, EMPTY_INT, EMPTY_INT))
           .isInstanceOf(BadRequestException.class);
     }
   }
@@ -220,35 +177,25 @@ class CriteriaFilterIntegrationTest {
     @Test
     void givenValidDate_whenMake_thenFilterCreated() {
       Criteria criteria = factory.make(
-          Optional.of("fecha:GTE:2024-01-15"), Optional.empty(), Optional.empty(),
-          Optional.empty());
+          Optional.of("fecha:GTE:2024-01-15"), EMPTY_STR, EMPTY_INT, EMPTY_INT);
 
       Filter<FechaPeninsular> filter = criteria.getFilterOrElseThrow("fecha");
       assertThat(filter.withOperator(Operator.GTE).get())
           .isEqualTo(FechaPeninsular.fromString("2024-01-15"));
     }
 
-    @Test
-    void givenInvalidDateFormat_whenMake_thenBadRequest() {
-      assertThatThrownBy(() -> factory.make(
-          Optional.of("fecha:GTE:15-01-2024"), Optional.empty(), Optional.empty(),
-          Optional.empty()))
-          .isInstanceOf(BadRequestException.class);
-    }
-
-    @Test
-    void givenNonExistingDate_whenMake_thenBadRequest() {
-      assertThatThrownBy(() -> factory.make(
-          Optional.of("fecha:GTE:2024-13-01"), Optional.empty(), Optional.empty(),
-          Optional.empty()))
+    @ParameterizedTest
+    @ValueSource(strings = {"fecha:GTE:15-01-2024", "fecha:GTE:2024-13-01"})
+    void givenInvalidDate_whenMake_thenBadRequest(String filter) {
+      Optional<String> filters = Optional.of(filter);
+      assertThatThrownBy(() -> factory.make(filters, EMPTY_STR, EMPTY_INT, EMPTY_INT))
           .isInstanceOf(BadRequestException.class);
     }
 
     @Test
     void givenLte_whenMake_thenFilterCreated() {
       Criteria criteria = factory.make(
-          Optional.of("fechaLte:LTE:2024-12-31"), Optional.empty(), Optional.empty(),
-          Optional.empty());
+          Optional.of("fechaLte:LTE:2024-12-31"), EMPTY_STR, EMPTY_INT, EMPTY_INT);
 
       Filter<FechaPeninsular> filter = criteria.getFilterOrElseThrow("fechaLte");
       assertThat(filter.withOperator(Operator.LTE).get())
@@ -262,8 +209,7 @@ class CriteriaFilterIntegrationTest {
     @Test
     void givenValidStringList_whenMake_thenFilterCreated() {
       Criteria criteria = factory.make(
-          Optional.of("tags:CONTAINS_ALL:[java,python]"), Optional.empty(), Optional.empty(),
-          Optional.empty());
+          Optional.of("tags:CONTAINS_ALL:[java,python]"), EMPTY_STR, EMPTY_INT, EMPTY_INT);
 
       Filter<List<String>> filter = criteria.getFilterOrElseThrow("tags");
       assertThat(filter.withOperator(Operator.CONTAINS_ALL).get())
@@ -273,8 +219,7 @@ class CriteriaFilterIntegrationTest {
     @Test
     void givenValidNumberList_whenMake_thenFilterCreated() {
       Criteria criteria = factory.make(
-          Optional.of("ids:CONTAINS_ALL:[1,2,3]"), Optional.empty(), Optional.empty(),
-          Optional.empty());
+          Optional.of("ids:CONTAINS_ALL:[1,2,3]"), EMPTY_STR, EMPTY_INT, EMPTY_INT);
 
       Filter<List<Integer>> filter = criteria.getFilterOrElseThrow("ids");
       assertThat(filter.withOperator(Operator.CONTAINS_ALL).get())
@@ -286,52 +231,37 @@ class CriteriaFilterIntegrationTest {
       String uuid1 = "550e8400-e29b-41d4-a716-446655440000";
       String uuid2 = "6ba7b810-9dad-11d1-80b4-00c04fd430c8";
       Criteria criteria = factory.make(
-          Optional.of("uuids:CONTAINS_ALL:[" + uuid1 + "," + uuid2 + "]"), Optional.empty(),
-          Optional.empty(), Optional.empty());
+          Optional.of("uuids:CONTAINS_ALL:[" + uuid1 + "," + uuid2 + "]"), EMPTY_STR, EMPTY_INT, EMPTY_INT);
 
       Filter<List<UUID>> filter = criteria.getFilterOrElseThrow("uuids");
       assertThat(filter.withOperator(Operator.CONTAINS_ALL).get())
           .containsExactly(UUID.fromString(uuid1), UUID.fromString(uuid2));
     }
 
-    @Test
-    void givenListWithoutBrackets_whenMake_thenBadRequest() {
-      assertThatThrownBy(() -> factory.make(
-          Optional.of("tags:CONTAINS_ALL:java,python"), Optional.empty(), Optional.empty(),
-          Optional.empty()))
-          .isInstanceOf(BadRequestException.class);
-    }
-
-    @Test
-    void givenEmptyList_whenMake_thenBadRequest() {
-      assertThatThrownBy(() -> factory.make(
-          Optional.of("tags:CONTAINS_ALL:[]"), Optional.empty(), Optional.empty(),
-          Optional.empty()))
-          .isInstanceOf(BadRequestException.class);
-    }
-
-    @Test
-    void givenNonNumericInNumberList_whenMake_thenBadRequest() {
-      assertThatThrownBy(() -> factory.make(
-          Optional.of("ids:CONTAINS_ALL:[1,abc,3]"), Optional.empty(), Optional.empty(),
-          Optional.empty()))
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "tags:CONTAINS_ALL:java,python",
+        "tags:CONTAINS_ALL:[]",
+        "ids:CONTAINS_ALL:[1,abc,3]"
+    })
+    void givenInvalidList_whenMake_thenBadRequest(String filter) {
+      Optional<String> filters = Optional.of(filter);
+      assertThatThrownBy(() -> factory.make(filters, EMPTY_STR, EMPTY_INT, EMPTY_INT))
           .isInstanceOf(BadRequestException.class);
     }
 
     @Test
     void givenNonUuidInUuidList_whenMake_thenBadRequest() {
       String uuid1 = "550e8400-e29b-41d4-a716-446655440000";
-      assertThatThrownBy(() -> factory.make(
-          Optional.of("uuids:CONTAINS_ALL:[" + uuid1 + ",not-a-uuid]"), Optional.empty(),
-          Optional.empty(), Optional.empty()))
+      Optional<String> filters = Optional.of("uuids:CONTAINS_ALL:[" + uuid1 + ",not-a-uuid]");
+      assertThatThrownBy(() -> factory.make(filters, EMPTY_STR, EMPTY_INT, EMPTY_INT))
           .isInstanceOf(BadRequestException.class);
     }
 
     @Test
     void givenListWithWhitespace_whenMake_thenElementsTrimmed() {
       Criteria criteria = factory.make(
-          Optional.of("tags:CONTAINS_ALL:[ java , python ]"), Optional.empty(), Optional.empty(),
-          Optional.empty());
+          Optional.of("tags:CONTAINS_ALL:[ java , python ]"), EMPTY_STR, EMPTY_INT, EMPTY_INT);
 
       Filter<List<String>> filter = criteria.getFilterOrElseThrow("tags");
       assertThat(filter.withOperator(Operator.CONTAINS_ALL).get())

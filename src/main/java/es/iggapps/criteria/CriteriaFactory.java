@@ -1,11 +1,9 @@
 package es.iggapps.criteria;
 
 import es.iggapps.criteria.common.BadRequestException;
-import es.iggapps.criteria.common.ExceptionMessageService;
 import es.iggapps.criteria.common.domain.criteria.Criteria;
 import es.iggapps.criteria.common.domain.criteria.model.filter.FilterConfig;
 import es.iggapps.criteria.common.domain.criteria.model.filter.Filters;
-import es.iggapps.criteria.common.domain.criteria.model.filter.Type;
 import es.iggapps.criteria.common.domain.criteria.model.page.PageNumber;
 import es.iggapps.criteria.common.domain.criteria.model.page.PageSize;
 import es.iggapps.criteria.common.domain.criteria.model.sort.Sorts;
@@ -18,13 +16,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import org.springframework.beans.factory.annotation.Autowired;
 
 
 public abstract class CriteriaFactory {
-
-  @Autowired
-  private ExceptionMessageService exceptionMessageService;
 
   /* Filter error messages */
   private static final String MESSAGE_FILTERS_FORMAT_INCORRECT
@@ -75,8 +69,8 @@ public abstract class CriteriaFactory {
       this.validateAllFiltersAreInWhiteList(filtersValue);
       try {
         plainFilterList = this.makeFilterList(filtersValue);
-      } catch (CriteriaException ex) {
-        throw new BadRequestException(exceptionMessageService.getMessage(ex), ex);
+      } catch (CriteriaException e) {
+        throw new BadRequestException(e.getMessage(), e);
       }
     }
     List<PlainSort> plainSortList = configDefaultSort();
@@ -86,8 +80,8 @@ public abstract class CriteriaFactory {
       this.validateAllSortsAreInWhiteList(sortsValue);
       try {
         plainSortList = this.makeSortList(sortsValue);
-      } catch (CriteriaException ex) {
-        throw new BadRequestException(exceptionMessageService.getMessage(ex), ex);
+      } catch (CriteriaException e) {
+        throw new BadRequestException(e.getMessage(), e);
       }
     }
     try {
@@ -97,8 +91,8 @@ public abstract class CriteriaFactory {
           PageNumber.of(pageNumber.orElse(0)),
           PageSize.of(pageSize.orElse(configDefaultPageSize()))
       );
-    } catch (CriteriaException ex) {
-      throw new BadRequestException(exceptionMessageService.getMessage(ex), ex);
+    } catch (CriteriaException e) {
+      throw new BadRequestException(e.getMessage(), e);
     }
   }
 
