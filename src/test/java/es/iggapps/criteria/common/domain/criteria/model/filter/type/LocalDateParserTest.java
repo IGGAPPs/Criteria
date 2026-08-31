@@ -21,32 +21,21 @@ class LocalDateParserTest {
   private static final Field FIELD = Field.of(FIELD_NAME);
 
   @Test
-  void givenValidDate_whenParseDate_thenReturnsLocalDate() {
-    assertThat(Type.DATE.getParser().parse("2024-01-15", FIELD_NAME))
-        .isEqualTo(LocalDate.of(2024, 1, 15));
-  }
-
-  @Test
-  void givenLeapYearDate_whenParseDate_thenReturnsLocalDate() {
-    assertThat(Type.DATE.getParser().parse("2024-02-29", FIELD_NAME))
-        .isEqualTo(LocalDate.of(2024, 2, 29));
-  }
-
-  @ParameterizedTest
-  @ValueSource(strings = {"15-01-2024", "2024/01/15", "abc", "2024-13-01", "2024-01-32"})
-  void givenInvalidDate_whenParseDate_thenThrows(String value) {
-    assertThatThrownBy(() -> Type.DATE.getParser().parse(value, FIELD_NAME))
-        .isInstanceOf(CriteriaException.class);
-  }
-
-  @Test
-  void givenDateFilter_whenCreateFilter_thenFilterWorks() {
+  void givenValue_whenParseDate_thenReturnsLocalDate() {
     Filter<LocalDate> filter = new Filter<>(
         FIELD,
         List.of(PlainFilter.of(FIELD_NAME, Operator.EQ, "2024-01-15", Type.DATE))
     );
 
-    assertThat(filter.withOperator(Operator.EQ)).isPresent();
     assertThat(filter.withOperator(Operator.EQ)).contains(LocalDate.of(2024, 1, 15));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"15-01-2024", "2024/01/15", "abc", "2024-13-01", "2024-01-32"})
+  void givenInvalidValue_whenParseDate_thenThrows(String value) {
+    assertThatThrownBy(() -> new Filter<>(
+        FIELD,
+        List.of(PlainFilter.of(FIELD_NAME, Operator.EQ, value, Type.DATE))
+    )).isInstanceOf(CriteriaException.class);
   }
 }

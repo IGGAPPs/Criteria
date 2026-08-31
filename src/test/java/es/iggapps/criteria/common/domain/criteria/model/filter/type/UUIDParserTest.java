@@ -12,33 +12,31 @@ import es.iggapps.criteria.common.domain.exception.CriteriaException;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class UUIDParserTest {
 
   private static final String FIELD_NAME = "testField";
   private static final Field FIELD = Field.of(FIELD_NAME);
-  private static final String UUID_STR = "550e8400-e29b-41d4-a716-446655440000";
 
   @Test
-  void givenValidUuid_whenParseUuid_thenReturnsUuid() {
-    assertThat(Type.UUID.getParser().parse(UUID_STR, FIELD_NAME))
-        .isEqualTo(UUID.fromString(UUID_STR));
-  }
-
-  @Test
-  void givenInvalidUuid_whenParseUuid_thenThrows() {
-    assertThatThrownBy(() -> Type.UUID.getParser().parse("not-a-uuid", FIELD_NAME))
-        .isInstanceOf(CriteriaException.class);
-  }
-
-  @Test
-  void givenUuidFilter_whenCreateFilter_thenFilterWorks() {
+  void givenValue_whenParseUuid_thenReturnsUuid() {
+    String uuidStr = "550e8400-e29b-41d4-a716-446655440000";
     Filter<UUID> filter = new Filter<>(
         FIELD,
-        List.of(PlainFilter.of(FIELD_NAME, Operator.EQ, UUID_STR, Type.UUID))
+        List.of(PlainFilter.of(FIELD_NAME, Operator.EQ, uuidStr, Type.UUID))
     );
 
-    assertThat(filter.withOperator(Operator.EQ)).isPresent();
-    assertThat(filter.withOperator(Operator.EQ)).contains(UUID.fromString(UUID_STR));
+    assertThat(filter.withOperator(Operator.EQ)).contains(UUID.fromString(uuidStr));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"not-a-uuid", "550e8400-e29b-41d4-a716", ""})
+  void givenInvalidValue_whenParseUuid_thenThrows(String value) {
+    assertThatThrownBy(() -> new Filter<>(
+        FIELD,
+        List.of(PlainFilter.of(FIELD_NAME, Operator.EQ, value, Type.UUID))
+    )).isInstanceOf(CriteriaException.class);
   }
 }

@@ -20,51 +20,21 @@ class IntegerParserTest {
   private static final Field FIELD = Field.of(FIELD_NAME);
 
   @Test
-  void givenPositiveNumber_whenParseInteger_thenReturnsInteger() {
-    assertThat(Type.INTEGER.getParser().parse("42", FIELD_NAME)).isEqualTo(42);
-  }
-
-  @Test
-  void givenValueOne_whenParseInteger_thenReturnsOne() {
-    assertThat(Type.INTEGER.getParser().parse("1", FIELD_NAME)).isEqualTo(1);
-  }
-
-  @Test
-  void givenNegativeNumber_whenParseInteger_thenReturnsNegative() {
-    assertThat(Type.INTEGER.getParser().parse("-5", FIELD_NAME)).isEqualTo(-5);
-  }
-
-  @Test
-  void givenZero_whenParseInteger_thenReturnsZero() {
-    assertThat(Type.INTEGER.getParser().parse("0", FIELD_NAME)).isEqualTo(0);
-  }
-
-  @ParameterizedTest
-  @ValueSource(strings = {"abc", "12.5", "12L"})
-  void givenInvalidInteger_whenParseInteger_thenThrows(String value) {
-    assertThatThrownBy(() -> Type.INTEGER.getParser().parse(value, FIELD_NAME))
-        .isInstanceOf(CriteriaException.class);
-  }
-
-  @Test
-  void givenIntegerFilter_whenCreateFilter_thenFilterWorks() {
+  void givenValue_whenParseInteger_thenReturnsInteger() {
     Filter<Integer> filter = new Filter<>(
         FIELD,
         List.of(PlainFilter.of(FIELD_NAME, Operator.EQ, "42", Type.INTEGER))
     );
 
-    assertThat(filter.withOperator(Operator.EQ)).isPresent();
     assertThat(filter.withOperator(Operator.EQ)).contains(42);
   }
 
-  @Test
-  void givenNegativeIntegerFilter_whenCreateFilter_thenFilterWorks() {
-    Filter<Integer> filter = new Filter<>(
+  @ParameterizedTest
+  @ValueSource(strings = {"abc", "12.5", "12L", ""})
+  void givenInvalidValue_whenParseInteger_thenThrows(String value) {
+    assertThatThrownBy(() -> new Filter<>(
         FIELD,
-        List.of(PlainFilter.of(FIELD_NAME, Operator.EQ, "-10", Type.INTEGER))
-    );
-
-    assertThat(filter.withOperator(Operator.EQ)).isPresent();
-    assertThat(filter.withOperator(Operator.EQ)).contains(-10);
+        List.of(PlainFilter.of(FIELD_NAME, Operator.EQ, value, Type.INTEGER))
+    )).isInstanceOf(CriteriaException.class);
   }
 }

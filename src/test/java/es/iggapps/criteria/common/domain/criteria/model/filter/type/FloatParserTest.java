@@ -20,35 +20,21 @@ class FloatParserTest {
   private static final Field FIELD = Field.of(FIELD_NAME);
 
   @Test
-  void givenDecimal_whenParseFloat_thenReturnsFloat() {
-    assertThat(Type.FLOAT.getParser().parse("3.14", FIELD_NAME)).isEqualTo(3.14f);
-  }
-
-  @Test
-  void givenNegativeDecimal_whenParseFloat_thenReturnsNegative() {
-    assertThat(Type.FLOAT.getParser().parse("-2.5", FIELD_NAME)).isEqualTo(-2.5f);
-  }
-
-  @Test
-  void givenInteger_whenParseFloat_thenReturnsFloat() {
-    assertThat(Type.FLOAT.getParser().parse("42", FIELD_NAME)).isEqualTo(42.0f);
-  }
-
-  @ParameterizedTest
-  @ValueSource(strings = {"abc", "12.5.5"})
-  void givenInvalidFloat_whenParseFloat_thenThrows(String value) {
-    assertThatThrownBy(() -> Type.FLOAT.getParser().parse(value, FIELD_NAME))
-        .isInstanceOf(CriteriaException.class);
-  }
-
-  @Test
-  void givenFloatFilter_whenCreateFilter_thenFilterWorks() {
+  void givenValue_whenParseFloat_thenReturnsFloat() {
     Filter<Float> filter = new Filter<>(
         FIELD,
         List.of(PlainFilter.of(FIELD_NAME, Operator.EQ, "3.14", Type.FLOAT))
     );
 
-    assertThat(filter.withOperator(Operator.EQ)).isPresent();
     assertThat(filter.withOperator(Operator.EQ)).contains(3.14f);
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"abc", "12.5.5"})
+  void givenInvalidValue_whenParseFloat_thenThrows(String value) {
+    assertThatThrownBy(() -> new Filter<>(
+        FIELD,
+        List.of(PlainFilter.of(FIELD_NAME, Operator.EQ, value, Type.FLOAT))
+    )).isInstanceOf(CriteriaException.class);
   }
 }

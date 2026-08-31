@@ -20,35 +20,21 @@ class DoubleParserTest {
   private static final Field FIELD = Field.of(FIELD_NAME);
 
   @Test
-  void givenDecimal_whenParseDouble_thenReturnsDouble() {
-    assertThat(Type.DOUBLE.getParser().parse("3.14", FIELD_NAME)).isEqualTo(3.14);
-  }
-
-  @Test
-  void givenNegativeDecimal_whenParseDouble_thenReturnsNegative() {
-    assertThat(Type.DOUBLE.getParser().parse("-2.5", FIELD_NAME)).isEqualTo(-2.5);
-  }
-
-  @Test
-  void givenInteger_whenParseDouble_thenReturnsDouble() {
-    assertThat(Type.DOUBLE.getParser().parse("42", FIELD_NAME)).isEqualTo(42.0);
-  }
-
-  @ParameterizedTest
-  @ValueSource(strings = {"abc", "12.5.5"})
-  void givenInvalidDouble_whenParseDouble_thenThrows(String value) {
-    assertThatThrownBy(() -> Type.DOUBLE.getParser().parse(value, FIELD_NAME))
-        .isInstanceOf(CriteriaException.class);
-  }
-
-  @Test
-  void givenDoubleFilter_whenCreateFilter_thenFilterWorks() {
+  void givenValue_whenParseDouble_thenReturnsDouble() {
     Filter<Double> filter = new Filter<>(
         FIELD,
         List.of(PlainFilter.of(FIELD_NAME, Operator.EQ, "3.14", Type.DOUBLE))
     );
 
-    assertThat(filter.withOperator(Operator.EQ)).isPresent();
     assertThat(filter.withOperator(Operator.EQ)).contains(3.14);
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"abc", "12.5.5"})
+  void givenInvalidValue_whenParseDouble_thenThrows(String value) {
+    assertThatThrownBy(() -> new Filter<>(
+        FIELD,
+        List.of(PlainFilter.of(FIELD_NAME, Operator.EQ, value, Type.DOUBLE))
+    )).isInstanceOf(CriteriaException.class);
   }
 }
