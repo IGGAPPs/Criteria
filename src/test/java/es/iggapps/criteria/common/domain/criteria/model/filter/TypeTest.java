@@ -6,7 +6,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import es.iggapps.criteria.common.domain.criteria.model.Field;
 import es.iggapps.criteria.common.domain.criteria.plain.PlainFilter;
 import es.iggapps.criteria.common.domain.exception.CriteriaException;
-import es.iggapps.criteria.common.domain.valueobject.FechaPeninsular;
 import es.iggapps.criteria.common.domain.criteria.model.filter.parsers.IntegerParser;
 import es.iggapps.criteria.common.domain.criteria.model.filter.parsers.ListParser;
 import es.iggapps.criteria.common.domain.criteria.model.filter.parsers.StringParser;
@@ -56,19 +55,6 @@ class TypeTest {
   void givenInvalidUuid_whenParseUuid_thenThrows() {
     UUIDParser parser = new UUIDParser();
     assertThatThrownBy(() -> parser.parse("not-a-uuid", FIELD_NAME))
-        .isInstanceOf(CriteriaException.class);
-  }
-
-  @Test
-  void givenValidDate_whenParseFechaPeninsular_thenReturnsFecha() {
-    assertThat(Type.FECHA_PENINSULAR.getParser().parse("2024-01-15", FIELD_NAME))
-        .isEqualTo(FechaPeninsular.fromString("2024-01-15"));
-  }
-
-  @Test
-  void givenInvalidDate_whenParseFechaPeninsular_thenThrows() {
-    var parser = Type.FECHA_PENINSULAR.getParser();
-    assertThatThrownBy(() -> parser.parse("15-01-2024", FIELD_NAME))
         .isInstanceOf(CriteriaException.class);
   }
 

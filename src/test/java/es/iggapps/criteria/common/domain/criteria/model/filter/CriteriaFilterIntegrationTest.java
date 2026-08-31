@@ -7,7 +7,6 @@ import es.iggapps.criteria.CriteriaFactory;
 import es.iggapps.criteria.common.BadRequestException;
 import es.iggapps.criteria.common.domain.criteria.Criteria;
 import es.iggapps.criteria.common.domain.criteria.plain.PlainSort;
-import es.iggapps.criteria.common.domain.valueobject.FechaPeninsular;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -36,8 +35,6 @@ class CriteriaFilterIntegrationTest {
             "description", new FilterConfig(Type.STRING, Set.of(Operator.FZ)),
             "quantity", new FilterConfig(Type.INTEGER, Set.of(Operator.EQ)),
             "id", new FilterConfig(Type.UUID, Set.of(Operator.EQ)),
-            "fecha", new FilterConfig(Type.FECHA_PENINSULAR, Set.of(Operator.GTE)),
-            "fechaLte", new FilterConfig(Type.FECHA_PENINSULAR, Set.of(Operator.LTE)),
             "tags", FilterConfig.listOf(Type.STRING, Set.of(Operator.CONTAINS_ALL)),
             "ids", FilterConfig.listOf(Type.INTEGER, Set.of(Operator.CONTAINS_ALL)),
             "uuids", FilterConfig.listOf(Type.UUID, Set.of(Operator.CONTAINS_ALL))
@@ -168,38 +165,6 @@ class CriteriaFilterIntegrationTest {
       Optional<String> filters = Optional.of("id:EQ:not-a-uuid");
       assertThatThrownBy(() -> factory.make(filters, EMPTY_STR, EMPTY_INT, EMPTY_INT))
           .isInstanceOf(BadRequestException.class);
-    }
-  }
-
-  @Nested
-  class FechaPeninsularTests {
-
-    @Test
-    void givenValidDate_whenMake_thenFilterCreated() {
-      Criteria criteria = factory.make(
-          Optional.of("fecha:GTE:2024-01-15"), EMPTY_STR, EMPTY_INT, EMPTY_INT);
-
-      Filter<FechaPeninsular> filter = criteria.getFilterOrElseThrow("fecha");
-      assertThat(filter.withOperator(Operator.GTE).get())
-          .isEqualTo(FechaPeninsular.fromString("2024-01-15"));
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {"fecha:GTE:15-01-2024", "fecha:GTE:2024-13-01"})
-    void givenInvalidDate_whenMake_thenBadRequest(String filter) {
-      Optional<String> filters = Optional.of(filter);
-      assertThatThrownBy(() -> factory.make(filters, EMPTY_STR, EMPTY_INT, EMPTY_INT))
-          .isInstanceOf(BadRequestException.class);
-    }
-
-    @Test
-    void givenLte_whenMake_thenFilterCreated() {
-      Criteria criteria = factory.make(
-          Optional.of("fechaLte:LTE:2024-12-31"), EMPTY_STR, EMPTY_INT, EMPTY_INT);
-
-      Filter<FechaPeninsular> filter = criteria.getFilterOrElseThrow("fechaLte");
-      assertThat(filter.withOperator(Operator.LTE).get())
-          .isEqualTo(FechaPeninsular.fromString("2024-12-31"));
     }
   }
 

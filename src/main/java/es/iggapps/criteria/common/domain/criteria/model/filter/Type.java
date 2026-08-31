@@ -1,6 +1,5 @@
 package es.iggapps.criteria.common.domain.criteria.model.filter;
 
-import es.iggapps.criteria.common.domain.criteria.model.filter.parsers.FechaPeninsularParser;
 import es.iggapps.criteria.common.domain.criteria.model.filter.parsers.IntegerParser;
 import es.iggapps.criteria.common.domain.criteria.model.filter.parsers.StringParser;
 import es.iggapps.criteria.common.domain.criteria.model.filter.parsers.UUIDParser;
@@ -13,8 +12,7 @@ import lombok.Getter;
 public enum Type {
   STRING(new StringParser()),
   INTEGER(new IntegerParser()),
-  UUID(new UUIDParser()),
-  FECHA_PENINSULAR(new FechaPeninsularParser());
+  UUID(new UUIDParser());
 
   private final ValueParser<?> parser;
 }
