@@ -14,7 +14,6 @@ public final class Operator {
   public static final Operator GTE = register("GTE");
   public static final Operator LT = register("LT");
   public static final Operator LTE = register("LTE");
-  public static final Operator BETWEEN = register("BETWEEN");
   public static final Operator CONTAINS = register("CONTAINS");
   public static final Operator STARTS_WITH = register("STARTS_WITH");
   public static final Operator ENDS_WITH = register("ENDS_WITH");

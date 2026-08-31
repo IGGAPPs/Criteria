@@ -95,7 +95,6 @@ field1:operator1:value1,field2:operator2:value2
 | `GTE` | Greater than or equal | Numeric, Date | `precio:GTE:100` |
 | `LT` | Less than | Numeric, Date | `precio:LT:500` |
 | `LTE` | Less than or equal | Numeric, Date | `precio:LTE:500` |
-| `BETWEEN` | Range between two values | Numeric, Date | `precio:BETWEEN:100,500` |
 | `CONTAINS` | String contains | String | `nombre:CONTAINS:laptop` |
 | `STARTS_WITH` | String starts with | String | `nombre:STARTS_WITH:lap` |
 | `ENDS_WITH` | String ends with | String | `nombre:ENDS_WITH:top` |

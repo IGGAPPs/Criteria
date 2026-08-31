@@ -15,7 +15,6 @@ class OperatorTest {
     assertThat(Operator.GTE).isNotNull();
     assertThat(Operator.LT).isNotNull();
     assertThat(Operator.LTE).isNotNull();
-    assertThat(Operator.BETWEEN).isNotNull();
     assertThat(Operator.CONTAINS).isNotNull();
     assertThat(Operator.STARTS_WITH).isNotNull();
     assertThat(Operator.ENDS_WITH).isNotNull();
@@ -31,7 +30,6 @@ class OperatorTest {
     assertThat(Operator.GTE.name()).isEqualTo("GTE");
     assertThat(Operator.LT.name()).isEqualTo("LT");
     assertThat(Operator.LTE.name()).isEqualTo("LTE");
-    assertThat(Operator.BETWEEN.name()).isEqualTo("BETWEEN");
     assertThat(Operator.CONTAINS.name()).isEqualTo("CONTAINS");
     assertThat(Operator.STARTS_WITH.name()).isEqualTo("STARTS_WITH");
     assertThat(Operator.ENDS_WITH.name()).isEqualTo("ENDS_WITH");
