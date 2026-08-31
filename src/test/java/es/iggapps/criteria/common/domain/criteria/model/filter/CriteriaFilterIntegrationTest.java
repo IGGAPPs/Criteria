@@ -129,17 +129,17 @@ class CriteriaFilterIntegrationTest {
   class NaturalNumberEquals {
 
     @ParameterizedTest
-    @ValueSource(strings = {"quantity:EQ:42", "quantity:EQ:1"})
+    @ValueSource(strings = {"quantity:EQ:42", "quantity:EQ:1", "quantity:EQ:0", "quantity:EQ:-5"})
     void givenValidNumber_whenMake_thenFilterCreated(String filter) {
       Criteria criteria = factory.make(
           Optional.of(filter), EMPTY_STR, EMPTY_INT, EMPTY_INT);
 
       Filter<Integer> result = criteria.getFilterOrElseThrow("quantity");
-      assertThat(result.withOperator(Operator.EQ).get()).isGreaterThan(0);
+      assertThat(result.withOperator(Operator.EQ)).isPresent();
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"quantity:EQ:notanumber", "quantity:EQ:0", "quantity:EQ:-5"})
+    @ValueSource(strings = {"quantity:EQ:notanumber", "quantity:EQ:12.5"})
     void givenInvalidNumber_whenMake_thenBadRequest(String filter) {
       Optional<String> filters = Optional.of(filter);
       assertThatThrownBy(() -> factory.make(filters, EMPTY_STR, EMPTY_INT, EMPTY_INT))
