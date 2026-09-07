@@ -123,9 +123,7 @@ public abstract class CriteriaFactory {
 
   protected Set<Schema> configSchemasRequiringParentheses() {
     return Set.of(
-        Schema.CONTAINS_ALL_STRINGS,
-        Schema.CONTAINS_ALL_NUMBERS,
-        Schema.CONTAINS_ALL_UUIDS
+        Schema.CONTAINS_ANY_STRINGS
     );
   }
 

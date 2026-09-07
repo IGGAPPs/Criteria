@@ -7,17 +7,17 @@ import es.iggapps.criteria.common.domain.criteria.plain.PlainFilter;
 import java.util.Arrays;
 import java.util.List;
 
-public final class ContainsAllStringsFilter extends Filter<List<String>> {
+public final class ContainsAnyStringsFilter extends Filter<List<String>> {
 
-  public static final Schema TYPE = Schema.CONTAINS_ALL_STRINGS;
+  public static final Schema TYPE = Schema.CONTAINS_ANY_STRINGS;
 
-  private ContainsAllStringsFilter(final Field field, final List<PlainFilter> plainFilterList) {
+  private ContainsAnyStringsFilter(final Field field, final List<PlainFilter> plainFilterList) {
     super(field, plainFilterList, TYPE);
   }
 
   public static Filter<List<String>> of(final Field field,
       final List<PlainFilter> plainFilterList) {
-    return new ContainsAllStringsFilter(field, plainFilterList);
+    return new ContainsAnyStringsFilter(field, plainFilterList);
   }
 
   @Override

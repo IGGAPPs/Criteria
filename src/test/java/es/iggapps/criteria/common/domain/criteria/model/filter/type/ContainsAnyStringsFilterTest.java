@@ -18,7 +18,7 @@ import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class ContainsAllStringsFilterTest {
+class ContainsAnyStringsFilterTest {
 
   private static final String FIELD = "tags";
 
@@ -29,7 +29,7 @@ class ContainsAllStringsFilterTest {
     factory = new CriteriaFactory() {
       @Override
       protected Map<String, Schema> configFilterWhiteListAndSchemas() {
-        return Map.of(FIELD, Schema.CONTAINS_ALL_STRINGS);
+        return Map.of(FIELD, Schema.CONTAINS_ANY_STRINGS);
       }
 
       @Override
