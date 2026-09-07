@@ -72,7 +72,9 @@ class FechaPeninsularLteFilterTest {
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
-    )).isInstanceOf(BadRequestException.class);
+    )).isInstanceOf(BadRequestException.class)
+        .hasMessage("El valor indicado en el filtro 'fecha' no tiene un formato de fecha correcto (yyyy-mm-dd) "
+            + "o no es una fecha existente");
   }
 
   @Test
@@ -82,7 +84,9 @@ class FechaPeninsularLteFilterTest {
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
-    )).isInstanceOf(BadRequestException.class);
+    )).isInstanceOf(BadRequestException.class)
+        .hasMessage("El valor indicado en el filtro 'fecha' no tiene un formato de fecha correcto (yyyy-mm-dd) "
+            + "o no es una fecha existente");
   }
 
   @Test
@@ -92,7 +96,10 @@ class FechaPeninsularLteFilterTest {
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
-    )).isInstanceOf(BadRequestException.class);
+    )).isInstanceOf(BadRequestException.class)
+        .hasMessage("El formato del parámetro 'filters' es incorrecto."
+            + " Se debe indicar el valor de filtrado."
+            + " Cada filtro debe seguir el formato 'campo:operador:valor'.");
   }
 
   @Test
@@ -102,7 +109,8 @@ class FechaPeninsularLteFilterTest {
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
-    )).isInstanceOf(BadRequestException.class);
+    )).isInstanceOf(BadRequestException.class)
+        .hasMessage("El operador no se reconoce como válido para el filtro 'fecha'. La lista de operadores válidos es ['LTE']");
   }
 
   @Test
@@ -112,6 +120,7 @@ class FechaPeninsularLteFilterTest {
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
-    )).isInstanceOf(BadRequestException.class);
+    )).isInstanceOf(BadRequestException.class)
+        .hasMessage("El campo 'other' no está permitido para el filtrado. La lista de campos permitidos es ['fecha'].");
   }
 }

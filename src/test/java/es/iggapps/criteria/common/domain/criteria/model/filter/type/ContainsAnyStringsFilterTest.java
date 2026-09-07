@@ -79,7 +79,7 @@ class ContainsAnyStringsFilterTest {
   }
 
   @Test
-  void givenListWithWhitespace_whenMake_thenElementsAreTrimmed() {
+  void givenListWithSpaces_whenMake_thenSpacesAreTrimmed() {
     Criteria criteria = factory.make(
         Optional.of("tags:containsAny:( java , python )"),
         Optional.empty(),
@@ -93,13 +93,17 @@ class ContainsAnyStringsFilterTest {
   }
 
   @Test
-  void givenFormatWithoutParentheses_whenMake_thenBadRequestException() {
-    assertThatThrownBy(() -> factory.make(
-        Optional.of("tags:containsAny:java,python"),
+  void givenDuplicateValues_whenMake_thenAllKept() {
+    Criteria criteria = factory.make(
+        Optional.of("tags:containsAny:(123,123)"),
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
-    )).isInstanceOf(BadRequestException.class);
+    );
+
+    Filter<List<String>> filter = criteria.getFilterOrElseThrow(FIELD);
+    assertThat(filter.withOperator(Operator.CONTAINSANY).get())
+        .containsExactly("123", "123");
   }
 
   @Test
@@ -109,7 +113,19 @@ class ContainsAnyStringsFilterTest {
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
-    )).isInstanceOf(BadRequestException.class);
+    )).isInstanceOf(BadRequestException.class)
+        .hasMessage("La lista de valores del filtro 'tags' no puede estar vacía.");
+  }
+
+  @Test
+  void givenValueWithoutParentheses_whenMake_thenBadRequestException() {
+    assertThatThrownBy(() -> factory.make(
+        Optional.of("tags:containsAny:java"),
+        Optional.empty(),
+        Optional.empty(),
+        Optional.empty()
+    )).isInstanceOf(BadRequestException.class)
+        .hasMessage("El valor del filtro 'tags' debe tener formato '(valor1,valor2,...)'.");
   }
 
   @Test
@@ -119,7 +135,52 @@ class ContainsAnyStringsFilterTest {
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
-    )).isInstanceOf(BadRequestException.class);
+    )).isInstanceOf(BadRequestException.class)
+        .hasMessage("El valor del filtro 'tags' debe tener formato '(valor1,valor2,...)'.");
+  }
+
+  @Test
+  void givenTrailingComma_whenMake_thenBadRequestException() {
+    assertThatThrownBy(() -> factory.make(
+        Optional.of("tags:containsAny:(123,)"),
+        Optional.empty(),
+        Optional.empty(),
+        Optional.empty()
+    )).isInstanceOf(BadRequestException.class)
+        .hasMessage("La lista de valores del filtro 'tags' contiene algún valor vacío.");
+  }
+
+  @Test
+  void givenDoubleComma_whenMake_thenBadRequestException() {
+    assertThatThrownBy(() -> factory.make(
+        Optional.of("tags:containsAny:(java,,python)"),
+        Optional.empty(),
+        Optional.empty(),
+        Optional.empty()
+    )).isInstanceOf(BadRequestException.class)
+        .hasMessage("La lista de valores del filtro 'tags' contiene algún valor vacío.");
+  }
+
+  @Test
+  void givenOnlyComma_whenMake_thenBadRequestException() {
+    assertThatThrownBy(() -> factory.make(
+        Optional.of("tags:containsAny:(,)"),
+        Optional.empty(),
+        Optional.empty(),
+        Optional.empty()
+    )).isInstanceOf(BadRequestException.class)
+        .hasMessage("La lista de valores del filtro 'tags' contiene algún valor vacío.");
+  }
+
+  @Test
+  void givenOnlySpacesAndCommas_whenMake_thenBadRequestException() {
+    assertThatThrownBy(() -> factory.make(
+        Optional.of("tags:containsAny:( , )"),
+        Optional.empty(),
+        Optional.empty(),
+        Optional.empty()
+    )).isInstanceOf(BadRequestException.class)
+        .hasMessage("La lista de valores del filtro 'tags' contiene algún valor vacío.");
   }
 
   @Test
@@ -129,7 +190,8 @@ class ContainsAnyStringsFilterTest {
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
-    )).isInstanceOf(BadRequestException.class);
+    )).isInstanceOf(BadRequestException.class)
+        .hasMessage("El campo 'unknown' no está permitido para el filtrado. La lista de campos permitidos es ['tags'].");
   }
 
   @Test
@@ -139,6 +201,7 @@ class ContainsAnyStringsFilterTest {
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
-    )).isInstanceOf(BadRequestException.class);
+    )).isInstanceOf(BadRequestException.class)
+        .hasMessage("El operador no se reconoce como válido para el filtro 'tags'. La lista de operadores válidos es ['CONTAINSANY']");
   }
 }

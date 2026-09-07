@@ -64,13 +64,16 @@ class StringEqualsFilterTest {
   }
 
   @Test
-  void givenFormatWithTooFewSegments_whenMake_thenBadRequestException() {
-    assertThatThrownBy(() -> factory.make(
-        Optional.of("name:EQ"),
+  void givenValueWithSpaces_whenMake_thenSpacesArePreserved() {
+    Criteria criteria = factory.make(
+        Optional.of("name:EQ:John Doe"),
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
-    )).isInstanceOf(BadRequestException.class);
+    );
+
+    Filter<String> filter = criteria.getFilterOrElseThrow(FIELD);
+    assertThat(filter.withOperator(Operator.EQ).get()).isEqualTo("John Doe");
   }
 
   @Test
@@ -82,9 +85,19 @@ class StringEqualsFilterTest {
         Optional.empty()
     );
 
-    assertThat(criteria.findFilterBy(FIELD)).isPresent();
     Filter<String> filter = criteria.getFilterOrElseThrow(FIELD);
     assertThat(filter.withOperator(Operator.EQ).get()).isEqualTo("John:extra");
+  }
+
+  @Test
+  void givenFormatWithTooFewSegments_whenMake_thenBadRequestException() {
+    assertThatThrownBy(() -> factory.make(
+        Optional.of("name:EQ"),
+        Optional.empty(),
+        Optional.empty(),
+        Optional.empty()
+    )).isInstanceOf(BadRequestException.class)
+        .hasMessage("El formato del parámetro 'filters' es incorrecto. Cada filtro debe seguir el formato 'campo:operador:valor'.");
   }
 
   @Test
@@ -94,7 +107,10 @@ class StringEqualsFilterTest {
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
-    )).isInstanceOf(BadRequestException.class);
+    )).isInstanceOf(BadRequestException.class)
+        .hasMessage("El formato del parámetro 'filters' es incorrecto."
+            + " Se debe indicar el nombre del campo de filtrado."
+            + " Cada filtro debe seguir el formato 'campo:operador:valor.'.");
   }
 
   @Test
@@ -104,7 +120,10 @@ class StringEqualsFilterTest {
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
-    )).isInstanceOf(BadRequestException.class);
+    )).isInstanceOf(BadRequestException.class)
+        .hasMessage("El formato del parámetro 'filters' es incorrecto."
+            + " Se debe indicar el operador de filtrado."
+            + " Cada filtro debe seguir el formato 'campo:operador:valor'.");
   }
 
   @Test
@@ -114,7 +133,10 @@ class StringEqualsFilterTest {
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
-    )).isInstanceOf(BadRequestException.class);
+    )).isInstanceOf(BadRequestException.class)
+        .hasMessage("El formato del parámetro 'filters' es incorrecto."
+            + " Se debe indicar el valor de filtrado."
+            + " Cada filtro debe seguir el formato 'campo:operador:valor'.");
   }
 
   @Test
@@ -124,7 +146,8 @@ class StringEqualsFilterTest {
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
-    )).isInstanceOf(BadRequestException.class);
+    )).isInstanceOf(BadRequestException.class)
+        .hasMessage("El campo 'unknown' no está permitido para el filtrado. La lista de campos permitidos es ['name'].");
   }
 
   @Test
@@ -134,7 +157,8 @@ class StringEqualsFilterTest {
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
-    )).isInstanceOf(BadRequestException.class);
+    )).isInstanceOf(BadRequestException.class)
+        .hasMessage("El operador no se reconoce como válido para el filtro 'name'. La lista de operadores válidos es ['EQ']");
   }
 
   @Test

@@ -72,7 +72,8 @@ class UUIDEqualsFilterTest {
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
-    )).isInstanceOf(BadRequestException.class);
+    )).isInstanceOf(BadRequestException.class)
+        .hasMessage("El filtro 'id' contiene un valor que no es de tipo UUID");
   }
 
   @Test
@@ -82,7 +83,10 @@ class UUIDEqualsFilterTest {
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
-    )).isInstanceOf(BadRequestException.class);
+    )).isInstanceOf(BadRequestException.class)
+        .hasMessage("El formato del parámetro 'filters' es incorrecto."
+            + " Se debe indicar el valor de filtrado."
+            + " Cada filtro debe seguir el formato 'campo:operador:valor'.");
   }
 
   @Test
@@ -92,7 +96,8 @@ class UUIDEqualsFilterTest {
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
-    )).isInstanceOf(BadRequestException.class);
+    )).isInstanceOf(BadRequestException.class)
+        .hasMessage("El operador no se reconoce como válido para el filtro 'id'. La lista de operadores válidos es ['EQ']");
   }
 
   @Test
@@ -102,6 +107,7 @@ class UUIDEqualsFilterTest {
         Optional.empty(),
         Optional.empty(),
         Optional.empty()
-    )).isInstanceOf(BadRequestException.class);
+    )).isInstanceOf(BadRequestException.class)
+        .hasMessage("El campo 'unknown' no está permitido para el filtrado. La lista de campos permitidos es ['id'].");
   }
 }

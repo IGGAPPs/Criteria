@@ -150,7 +150,10 @@ public abstract class CriteriaFactory {
         throw new BadRequestException(MESSAGE_FILTER_OPERATOR_CANNOT_BE_EMPTY);
       }
       if (filterSegments[2].isBlank()) {
-        throw new BadRequestException(MESSAGE_FILTER_VALUE_CANNOT_BE_EMPTY);
+        final Schema schema = configFilterWhiteListAndSchemas().get(filterSegments[0]);
+        if (!configSchemasRequiringParentheses().contains(schema)) {
+          throw new BadRequestException(MESSAGE_FILTER_VALUE_CANNOT_BE_EMPTY);
+        }
       }
     });
   }
