@@ -12,7 +12,7 @@ public final class ContainsAnyStringsFilter extends Filter<List<String>> {
 
   public static final Schema TYPE = Schema.CONTAINS_ANY_STRINGS;
 
-  private static final String MESSAGE_VALUE_EMPTY =
+  private static final String MESSAGE_VALUE_EMPTY_ITEM =
       "La lista de valores del filtro '%s' contiene algún valor vacío.";
 
   private ContainsAnyStringsFilter(final Field field, final List<PlainFilter> plainFilterList) {
@@ -25,12 +25,11 @@ public final class ContainsAnyStringsFilter extends Filter<List<String>> {
   }
 
   @Override
-  protected List<String> configValueParsing(final String value) {
-    final var elements = Arrays.stream(value.split(",", -1))
-        .map(String::strip)
-        .toList();
+  @SuppressWarnings("unchecked")
+  protected List<String> configValueParsing(final Object value) {
+    final List<String> elements = (List<String>) value;
     if (elements.stream().anyMatch(String::isEmpty)) {
-      throw new CriteriaException(MESSAGE_VALUE_EMPTY.formatted(field.getField()));
+      throw new CriteriaException(MESSAGE_VALUE_EMPTY_ITEM.formatted(field.getField()));
     }
     return elements;
   }

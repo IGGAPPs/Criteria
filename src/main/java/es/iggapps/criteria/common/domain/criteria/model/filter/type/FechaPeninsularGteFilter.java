@@ -27,9 +27,10 @@ public final class FechaPeninsularGteFilter extends Filter<FechaPeninsular> {
   }
 
   @Override
-  protected FechaPeninsular configValueParsing(final String value) {
+  protected FechaPeninsular configValueParsing(final Object value) {
+    final String strValue = (String) value;
     try {
-      return FechaPeninsular.fromString(value);
+      return FechaPeninsular.fromString(strValue);
     } catch (DomainException ex) {
       throw new CriteriaException(MESSAGE_VALUE_IN_NOT_A_DATE.formatted(field.getField()), ex);
     }

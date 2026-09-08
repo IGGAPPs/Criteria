@@ -178,14 +178,15 @@ public abstract class CriteriaFactory {
           final String operator = filterSegments[1];
           final String rawValue = filterSegments[2];
           final Schema schema = configFilterWhiteListAndSchemas().get(field);
-          final String value = configSchemasRequiringParentheses().contains(schema)
+          PlainFilter.validateOperator(field, operator, schema);
+          final Object value = configSchemasRequiringParentheses().contains(schema)
               ? validateAndStripParentheses(rawValue, field)
               : rawValue;
           return PlainFilter.of(field, operator, value, schema);
         }).toList();
   }
 
-  private String validateAndStripParentheses(final String value, final String field) {
+  private List<String> validateAndStripParentheses(final String value, final String field) {
     final String trimmed = value.strip();
     if (!trimmed.startsWith(LIST_OPEN_DELIMITER) || !trimmed.endsWith(LIST_CLOSE_DELIMITER)) {
       throw new BadRequestException(
@@ -196,7 +197,9 @@ public abstract class CriteriaFactory {
       throw new BadRequestException(
           MESSAGE_FILTER_VALUE_EMPTY_LIST.formatted(field));
     }
-    return inner;
+    return Arrays.stream(inner.split(",", -1))
+        .map(String::strip)
+        .toList();
   }
 
   // ──────────────────────────────────────────────

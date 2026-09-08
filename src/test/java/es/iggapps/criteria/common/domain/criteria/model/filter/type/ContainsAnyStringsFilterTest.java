@@ -204,4 +204,48 @@ class ContainsAnyStringsFilterTest {
     )).isInstanceOf(BadRequestException.class)
         .hasMessage("El operador no se reconoce como válido para el filtro 'tags'. La lista de operadores válidos es ['CONTAINSANY']");
   }
+
+  @Test
+  void givenEqOperatorWithEmptyValue_whenMake_thenBadRequestException() {
+    assertThatThrownBy(() -> factory.make(
+        Optional.of("tags:EQ:"),
+        Optional.empty(),
+        Optional.empty(),
+        Optional.empty()
+    )).isInstanceOf(BadRequestException.class)
+        .hasMessage("El operador no se reconoce como válido para el filtro 'tags'. La lista de operadores válidos es ['CONTAINSANY']");
+  }
+
+  @Test
+  void givenEqOperatorWithEmptyParentheses_whenMake_thenBadRequestException() {
+    assertThatThrownBy(() -> factory.make(
+        Optional.of("tags:EQ:()"),
+        Optional.empty(),
+        Optional.empty(),
+        Optional.empty()
+    )).isInstanceOf(BadRequestException.class)
+        .hasMessage("El operador no se reconoce como válido para el filtro 'tags'. La lista de operadores válidos es ['CONTAINSANY']");
+  }
+
+  @Test
+  void givenEqOperatorWithOnlyComma_whenMake_thenBadRequestException() {
+    assertThatThrownBy(() -> factory.make(
+        Optional.of("tags:EQ:(,)"),
+        Optional.empty(),
+        Optional.empty(),
+        Optional.empty()
+    )).isInstanceOf(BadRequestException.class)
+        .hasMessage("El operador no se reconoce como válido para el filtro 'tags'. La lista de operadores válidos es ['CONTAINSANY']");
+  }
+
+  @Test
+  void givenEqOperatorWithSimpleValue_whenMake_thenBadRequestException() {
+    assertThatThrownBy(() -> factory.make(
+        Optional.of("tags:EQ:276"),
+        Optional.empty(),
+        Optional.empty(),
+        Optional.empty()
+    )).isInstanceOf(BadRequestException.class)
+        .hasMessage("El operador no se reconoce como válido para el filtro 'tags'. La lista de operadores válidos es ['CONTAINSANY']");
+  }
 }

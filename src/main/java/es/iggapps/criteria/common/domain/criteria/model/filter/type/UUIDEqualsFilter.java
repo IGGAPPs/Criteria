@@ -22,10 +22,11 @@ public final class UUIDEqualsFilter extends Filter<UUID> {
   }
 
   @Override
-  protected UUID configValueParsing(final String value) {
+  protected UUID configValueParsing(final Object value) {
+    final String strValue = (String) value;
     UUID uuid;
     try {
-      uuid = UUID.fromString(value);
+      uuid = UUID.fromString(strValue);
     } catch (IllegalArgumentException ex) {
       throw new CriteriaException(MESSAGGE_VALUE_IN_NOT_AN_UUID.formatted(field.getField()), ex);
     }

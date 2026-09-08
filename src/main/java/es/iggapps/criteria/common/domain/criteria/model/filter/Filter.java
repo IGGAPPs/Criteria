@@ -40,20 +40,31 @@ public abstract class Filter<E> {
         throw new CriteriaException(
             MESSAGE_FILTER_DUPLICATED.formatted(field.getField(), operator.name()));
       }
-      if (plainFilter.getValue().toString().isBlank()) {
+      final Object rawValue = plainFilter.getValue();
+      if (isValueBlank(rawValue)) {
         throw new CriteriaException(
             MESSAGE_VALUE_EMPTY.formatted(field.getField(), operator.name()));
       }
       operatorValueMap1.put(
           operator,
-          configValueParsing(plainFilter.getValue().toString())
+          configValueParsing(rawValue)
       );
     });
 
     this.operatorValueMap = Map.copyOf(operatorValueMap1);
   }
 
-  protected abstract E configValueParsing(String value);
+  protected abstract E configValueParsing(Object value);
+
+  private boolean isValueBlank(final Object value) {
+    if (value instanceof String s) {
+      return s.isBlank();
+    }
+    if (value instanceof List<?> l) {
+      return l.isEmpty();
+    }
+    return value == null || value.toString().isBlank();
+  }
 
   public Optional<E> withOperator(final Operator operator) {
     return Optional.ofNullable(operatorValueMap.get(operator));

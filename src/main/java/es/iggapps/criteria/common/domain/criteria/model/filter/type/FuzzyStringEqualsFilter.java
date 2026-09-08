@@ -19,7 +19,7 @@ public final class FuzzyStringEqualsFilter extends Filter<String> {
   }
 
   @Override
-  protected String configValueParsing(final String value) {
-    return value;
+  protected String configValueParsing(final Object value) {
+    return (String) value;
   }
 }

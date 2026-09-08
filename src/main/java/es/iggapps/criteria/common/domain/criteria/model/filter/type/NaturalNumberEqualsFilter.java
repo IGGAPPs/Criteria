@@ -23,10 +23,11 @@ public final class NaturalNumberEqualsFilter extends Filter<Integer> {
   }
 
   @Override
-  protected Integer configValueParsing(final String value) {
+  protected Integer configValueParsing(final Object value) {
+    final String strValue = (String) value;
     int iValue;
     try {
-      iValue = Integer.parseInt(value);
+      iValue = Integer.parseInt(strValue);
     } catch (NumberFormatException ex) {
       throw new CriteriaException(MESSAGE_VALUE_IN_NOT_A_NUMBER.formatted(field.getField()), ex);
     }

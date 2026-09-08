@@ -25,10 +25,20 @@ public final class PlainFilter {
 
   public static PlainFilter of(final String field, final String operator, final Object value,
       final Schema schema) {
-    Operator operator1;
+    validateOperator(field, operator, schema);
+    final Operator operator1 = Operator.fromString(operator);
+    return new PlainFilter(Field.of(field), operator1, value, schema);
+  }
+
+  public static PlainFilter of(final String field, final Operator operator, final Object value,
+      final Schema schema) {
+    return new PlainFilter(Field.of(field), operator, value, schema);
+  }
+
+  public static void validateOperator(final String field, final String operator,
+      final Schema schema) {
     final List<Operator> operatorWhiteList = schema.getOperatorWhiteList();
-    final List<String> operatorNameWhiteList = schema.getOperatorWhiteList()
-        .stream()
+    final List<String> operatorNameWhiteList = operatorWhiteList.stream()
         .map(Operator::name)
         .toList();
     final String formattedOperatorNameWhiteList = operatorNameWhiteList.stream()
@@ -38,18 +48,12 @@ public final class PlainFilter {
         .formatted(field, formattedOperatorNameWhiteList);
 
     try {
-      operator1 = Operator.fromString(operator);
+      final Operator parsedOperator = Operator.fromString(operator);
+      if (!operatorWhiteList.contains(parsedOperator)) {
+        throw new CriteriaException(operatorInvalidMessage);
+      }
     } catch (IllegalArgumentException ex) {
       throw new CriteriaException(operatorInvalidMessage, ex);
     }
-    if (!operatorWhiteList.contains(operator1)) {
-      throw new CriteriaException(operatorInvalidMessage);
-    }
-    return new PlainFilter(Field.of(field), operator1, value, schema);
-  }
-
-  public static PlainFilter of(final String field, final Operator operator, final Object value,
-      final Schema schema) {
-    return new PlainFilter(Field.of(field), operator, value, schema);
   }
 }
